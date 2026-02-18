@@ -29,7 +29,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, headers, searchQuery
     if (!isShowingLineItems) {
       const seen = new Set();
       filtered = filtered.filter(item => {
-        const id = item.doc_invoice_id || item.uuid;
+        const id = item.uuid;
         if (seen.has(id)) return false;
         seen.add(id);
         return true;

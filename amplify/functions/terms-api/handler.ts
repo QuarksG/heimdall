@@ -1,4 +1,3 @@
-// amplify/functions/terms-api/handler.ts
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
@@ -64,7 +63,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       TableName: TERMS_TABLE_NAME,
       Item: marshall(
         {
-          id: acceptanceId, // IMPORTANT: matches Amplify Data default PK field name
+          id: acceptanceId, 
           termsVersion,
           sessionId,
           acceptedAt,

@@ -1,4 +1,3 @@
-// amplify/backend.ts
 import { defineBackend } from "@aws-amplify/backend";
 import { Stack } from "aws-cdk-lib";
 import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
@@ -21,17 +20,13 @@ const backend = defineBackend({
   termsApi,
 });
 
-// ── Terms API Lambda (writes to TermsAcceptance) ──
+
 const termsTable = backend.data.resources.tables.TermsAcceptance;
 termsTable.grantWriteData(backend.termsApi.resources.lambda);
 backend.termsApi.addEnvironment("TERMS_TABLE_NAME", termsTable.tableName);
 backend.termsApi.addEnvironment("CURRENT_TERMS_VERSION", "TOS_2026_02");
 
-// ── Pre-Token-Generation Lambda ──
-// To avoid circular dependency (auth <-> data), we do NOT reference
-// the Entitlement table object here. Instead the Lambda discovers
-// the table name at runtime via DynamoDB ListTables API.
-// We grant broad DynamoDB read permissions so it can find and query the table.
+
 const preTokenLambda = backend.preTokenGeneration.resources.lambda;
 
 preTokenLambda.addToRolePolicy(
@@ -48,7 +43,7 @@ preTokenLambda.addToRolePolicy(
   }),
 );
 
-// ── Public HTTP API (POST /onboarding/terms/accept) ──
+
 const apiStack = backend.createStack("http-api-stack");
 
 const httpApi = new HttpApi(apiStack, "HeimdallHttpApi", {

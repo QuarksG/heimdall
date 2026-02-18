@@ -1,4 +1,4 @@
-// amplify/auth/pre-sign-up/handler.ts
+
 import type { PreSignUpTriggerHandler } from "aws-lambda";
 
 const ALLOWED_DOMAINS = new Set(["amazon.cz", "amazon.tr", "amazon.com", "amazon.com.tr"]);
@@ -12,7 +12,7 @@ export const handler: PreSignUpTriggerHandler = async (event) => {
     throw new Error("Email domain is not allowed.");
   }
 
-  // clientMetadata is sent from Register.tsx signUp({ options: { clientMetadata } })
+ 
   const meta = event.request.clientMetadata ?? {};
   const acceptanceId = String((meta as any).acceptanceId ?? "").trim();
   const termsVersion = String((meta as any).termsVersion ?? "").trim();
@@ -25,7 +25,7 @@ export const handler: PreSignUpTriggerHandler = async (event) => {
     throw new Error("Terms version mismatch. Please re-accept the terms.");
   }
 
-  // Keep normal Cognito flow (email verification / OTP)
+ 
   event.response.autoConfirmUser = false;
   event.response.autoVerifyEmail = false;
 
