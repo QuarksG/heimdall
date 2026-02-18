@@ -1,0 +1,211 @@
+@import url(https://fonts.googleapis.com/css?family=Inter:100,200,300,regular,500,600,700,800,900);
+
+.invoice-parse {
+  margin-right: 300px;
+  padding: 20px;
+}
+
+.invoice-parse #searchBox {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #6b2727;
+  border-radius: 4px;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.invoice-parse #upload-section h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.invoice-parse .upload-controls-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.invoice-parse .choose-btn,
+.invoice-parse .upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.invoice-parse .choose-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.invoice-parse .choose-btn:hover {
+  background-color: #111827;
+  transform: translateY(-1px);
+}
+
+.invoice-parse .upload-btn {
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+  margin-left: auto;
+}
+
+.invoice-parse .upload-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px rgba(37, 99, 235, 0.3);
+}
+
+.invoice-parse .file-status {
+  font-size: 14px;
+  color: #6b7280;
+  font-style: italic;
+  min-width: 100px;
+}
+
+.invoice-parse .other-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 0;
+  margin-top: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.invoice-parse #itemsPerPage {
+  margin-left: 10px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.invoice-parse label {
+  color: #555;
+  font-weight: 500;
+}
+
+.invoice-parse #dataframe {
+  margin-top: 20px;
+  padding: 0;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 70vh;
+  display: block;
+}
+
+.invoice-parse table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.invoice-parse th, .invoice-parse td {
+  text-align: left;
+  padding: 12px 15px;
+  border-bottom: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+.invoice-parse th {
+  background-color: #32404D;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.invoice-parse tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.invoice-parse tr:hover {
+  background-color: #e9ecef;
+}
+
+.invoice-parse #downloadExcel {
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(135deg, #1e5799 0%, #2989d8 50%, #207cca 75%, #7db9e8 100%);
+  border: none;
+  border-radius: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: fixed;
+  bottom: 30px;
+  right: 320px;
+  z-index: 999;
+}
+
+.invoice-parse .invoiceSidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100vh;
+  background-color: #f9f9f9;
+  border-left: 1px solid #ddd;
+  padding: 20px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+}
+
+.invoice-parse .invoiceSidebar h3 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.invoice-parse .invoiceSidebar h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.invoice-parse .invoiceSidebar .checkbox-group {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.invoice-parse .invoiceSidebar input[type="checkbox"] {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.invoice-parse .invoiceSidebar label {
+  font-size: 14px;
+  color: #444;
+  cursor: pointer;
+}

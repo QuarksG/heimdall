@@ -1,0 +1,160 @@
+/* Page Layout */
+.invoice-verify-page {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.page-header h3 {
+  color: #1f2937;
+  font-weight: 700;
+}
+
+/* Dropzone Styles */
+.dropzone-area {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 20px 40px;
+  border-radius: 12px;
+  background-color: #ffffff;
+  color: #6b7280;
+  border: 2px dashed #e5e7eb;
+  cursor: pointer;
+  min-height: 100px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.dropzone-area:hover {
+  border-color: #3b82f6;
+}
+
+.dropzone-area.active {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+  transform: scale(1.01);
+}
+
+.dropzone-area.accept {
+  border-color: #10b981;
+  background-color: #f0fdf4;
+}
+
+.dropzone-area.reject {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.dropzone-icons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dropzone-text p {
+  font-size: 16px;
+  font-weight: 500;
+  color: #212529;
+  margin-bottom: 0;
+}
+
+.dropzone-text span {
+  color: #0d6efd; /* Bootstrap Primary Blue */
+  text-decoration: underline;
+}
+
+.dropzone-hint {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+/* Table Styles */
+.invoice-table-wrapper {
+  width: 100%;
+}
+
+.table-container {
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.sticky-header th {
+  position: sticky !important;
+  top: 0 !important;
+  background-color: #212529 !important; /* Bootstrap Dark */
+  color: white;
+  z-index: 1020;
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+  padding-top: 15px;
+  padding-bottom: 15px;
+  vertical-align: middle;
+  border-top: none;
+  white-space: nowrap;
+}
+
+/* Cell Specifics */
+.wrap-cell {
+  white-space: normal !important;
+  word-wrap: break-word;
+  max-width: 200px;
+  min-width: 150px;
+}
+
+.actions-column {
+  white-space: nowrap;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+/* Table Content alignment */
+.table > tbody > tr > td {
+  vertical-align: middle;
+}
+
+/* Summary Cards (InvoiceSummary) */
+.table-summary {
+  background-color: #f8f9fa;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Empty State Cards */
+.info-card {
+  text-align: center;
+  padding: 1.5rem;
+  background-color: white;
+  border-radius: 0.375rem;
+  border: 0;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  height: 100%;
+}
+
+.info-card h6 {
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
