@@ -1,7 +1,7 @@
 // amplify/auth/pre-sign-up/handler.ts
 import type { PreSignUpTriggerHandler } from "aws-lambda";
 
-const ALLOWED_DOMAINS = new Set(["amazon.cz", "amazon.tr", "amazon.com"]);
+const ALLOWED_DOMAINS = new Set(["amazon.cz", "amazon.tr", "amazon.com", "amazon.com.tr"]);
 const CURRENT_TERMS_VERSION = process.env.CURRENT_TERMS_VERSION ?? "TOS_2026_02";
 
 export const handler: PreSignUpTriggerHandler = async (event) => {
