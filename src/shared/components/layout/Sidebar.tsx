@@ -20,7 +20,7 @@ const ROUTE_PATHS: Record<FeatureKey, string> = {
   CRTRExtraction: "/crtr-extraction",
   Settings: "/settings",
   Help: "/help",
-  Logout: "/logout", // handled specially
+  Logout: "/logout",
 };
 
 interface SidebarItemProps {
@@ -98,9 +98,8 @@ const Sidebar: React.FC = () => {
 
       <div className="sidebar-separator"></div>
 
-      {/* ── NAVIGATION ── */}
+      {/* ── SCROLLABLE NAVIGATION (E-FATURA features) ── */}
       <div className="sidebar-nav">
-        {/* E-FATURA group */}
         <div className="nav-group">
           <p className="group-title">E-FATURA</p>
           <ul>
@@ -145,7 +144,10 @@ const Sidebar: React.FC = () => {
             <SidebarItem id="CRTRExtraction" icon="ph-file-export" label="CRTR Extraction" />
           </ul>
         </div>
+      </div>
 
+      {/* ── STICKY BOTTOM: ADMIN + ACCOUNT ── */}
+      <div className="sidebar-bottom">
         <div className="sidebar-separator"></div>
 
         {/* SETTINGS — visible to everyone, lock icon for non-admin */}
