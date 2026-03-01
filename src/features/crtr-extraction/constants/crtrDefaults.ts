@@ -2,13 +2,15 @@ import type { HeaderDef, CustomFieldDefs, TaxSchemeOption } from '../types/crtr.
 
 export const ALL_HEADERS: HeaderDef[] = [
   { key: 'doc_invoice_id', label: 'Invoice Document ID' },
+  { key: 'invoice_doc_reference', label: 'Invoice Document Reference' },
   { key: 'invoice_date', label: 'Invoice Date' },
   { key: 'invoice_amount', label: 'Invoice Amount' },
   { key: 'invoice_currency', label: 'Currency' },
   { key: 'LineType', label: 'Line Type' },
-  { key: 'LineAmount', label: 'Line Amt' },
+  { key: 'LineAmount', label: 'Line Amount' },
   { key: 'TaxCode', label: 'Tax Code' },
   { key: 'LineDescription', label: 'Description' },
+  { key: 'LineGroup', label: 'Line Group' },
   { key: 'supplier_name', label: 'Supplier' },
   { key: 'customer_name', label: 'Customer' },
   { key: 'doc_scenario', label: 'Document Scenario' },
@@ -31,6 +33,7 @@ export const ALL_HEADERS: HeaderDef[] = [
 export const DEFAULT_HEADERS: HeaderDef[] = ALL_HEADERS.filter((h) =>
   [
     'doc_invoice_id',
+    'invoice_doc_reference',
     'invoice_date',
     'invoice_amount',
     'invoice_currency',
@@ -38,6 +41,7 @@ export const DEFAULT_HEADERS: HeaderDef[] = ALL_HEADERS.filter((h) =>
     'LineAmount',
     'TaxCode',
     'LineDescription',
+    'LineGroup',
   ].includes(h.key)
 );
 
@@ -103,4 +107,5 @@ export const DESCRIPTION_FIELD_OPTIONS: TaxSchemeOption[] = [
   { value: 'brandName', label: 'Brand Name' },
   { value: 'modelName', label: 'Model Name' },
   { value: 'allowanceReason', label: 'Allowance/Charge Reason' },
+  { value: 'custom', label: 'Custom (Manual Entry)' },
 ];

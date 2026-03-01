@@ -3,7 +3,6 @@ import JSZip from 'jszip';
 import { CrtrXmlProcessor } from '../utils/crtrXmlParser';
 import { CUSTOM_FIELD_DEFS } from '../constants/crtrDefaults';
 
-
 import type {
   ExcelRow,
   ParsedInputFile,
@@ -41,6 +40,7 @@ export const useCrtrProcessor = () => {
       glAccount: { default: '' },
       taxSchemeOverride: '',
     },
+    customDescriptionText: '',
   });
 
   const uniqueTaxCodes = useMemo((): string[] => {

@@ -22,7 +22,8 @@ export type DescriptionFieldChoice =
   | 'manufacturersID'
   | 'brandName'
   | 'modelName'
-  | 'allowanceReason';
+  | 'allowanceReason'
+  | 'custom';
 
 export interface ParsedInputFile {
   name: string;
@@ -44,6 +45,8 @@ export interface CustomFieldConfig {
     glAccount: Record<string, string>;
     taxSchemeOverride: string;
   };
+  /** Free-text description entered by user (used when descriptionField = 'custom') */
+  customDescriptionText: string;
 }
 
 export interface DocumentTaxSubtotal {
@@ -90,6 +93,10 @@ export interface ExcelRow {
   TaxCode?: string;
   LineDescription?: string;
   Notes?: string | null;
+  /** Invoice document reference (e.g. despatch advice, order ref) */
+  invoice_doc_reference?: string | null;
+  /** Sequential group number per tax regime within a single invoice */
+  LineGroup?: number;
 }
 
 export interface ProcessingError {

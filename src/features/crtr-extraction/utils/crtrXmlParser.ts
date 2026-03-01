@@ -10,12 +10,19 @@ import type {
   ExcelRow,
 } from '../types/crtr.types';
 
-/**
- * CRTR-specific XML processor.
- *
- * Composes the shared XMLToExcelConverter for parsing/namespace resolution
- * and adds CRTR-domain methods (tax extraction, line grouping, validation).
- */
+
+function formatTaxRate(rate: number): string {
+  const fixed = rate.toFixed(2);
+  // Strip ".00" for whole numbers, keep decimals otherwise
+  return fixed.endsWith('.00') ? String(Math.round(rate)) : fixed;
+}
+
+
+function buildTaxCode(scheme: string, rate: number): string {
+  return `${scheme}-TR-${formatTaxRate(rate)}%`;
+}
+
+
 export class CrtrXmlProcessor {
   private converter: XMLToExcelConverter;
   private processedSuppliers: Set<string>;
@@ -25,16 +32,13 @@ export class CrtrXmlProcessor {
     this.processedSuppliers = new Set();
   }
 
-  /* ─── Delegated base methods ─── */
+  
 
   transformXML(xmlContent: string): Document | null {
     return this.converter.transformXML(xmlContent);
   }
 
-  /**
-   * Single-node XPath extraction with optional attribute support.
-   * Extends base evaluateSingle (textContent-only) with getAttribute.
-   */
+
   extractInfo(xmlNode: Node, xpath: string, attribute: string | null = null): string | null {
     const result = this.converter.xpathEvaluator.evaluate(
       xpath,
@@ -107,7 +111,8 @@ export class CrtrXmlProcessor {
     xmlNode: Node,
     descriptionFieldChoice: DescriptionFieldChoice,
     documentTaxGroups: DocumentTaxSubtotal[] | null,
-    taxSchemeOverride: string = ''
+    taxSchemeOverride: string = '',
+    customDescriptionText: string = ''
   ): LineTaxGroup[] {
     const lineItemsDetail: LineItemDetail[] = [];
     const invoiceLines = this.snapshotNodes(xmlNode, '//cac:InvoiceLine');
@@ -146,7 +151,7 @@ export class CrtrXmlProcessor {
         }
       }
 
-      const selectedDescription = this.buildDescription(line, descriptionFieldChoice);
+      const selectedDescription = this.buildDescription(line, descriptionFieldChoice, customDescriptionText);
 
       if (lineTotal) {
         const taxRate = parseFloat(lineTaxRate ?? '0') || 0;
@@ -168,7 +173,7 @@ export class CrtrXmlProcessor {
     const taxRegimeGroups: Record<string, LineTaxGroup> = {};
 
     lineItemsDetail.forEach((item) => {
-      const taxCode = `${item.taxScheme}-TR-${item.taxRate.toFixed(2)}%`;
+      const taxCode = buildTaxCode(item.taxScheme, item.taxRate);
 
       if (!taxRegimeGroups[taxCode]) {
         taxRegimeGroups[taxCode] = {
@@ -212,7 +217,7 @@ export class CrtrXmlProcessor {
 
       if (taxAmount && taxRate) {
         const rate = parseFloat(taxRate);
-        const taxCode = `${finalTaxScheme}-TR-${rate.toFixed(2)}%`;
+        const taxCode = buildTaxCode(finalTaxScheme, rate);
 
         const subtotalData: DocumentTaxSubtotal = {
           taxCode,
@@ -321,6 +326,7 @@ export class CrtrXmlProcessor {
   ): ExcelRow[] {
     const { customData, descriptionField } = customFieldsConfig;
     const taxSchemeOverride = customData.Tax.taxSchemeOverride || '';
+    const customDescriptionText = customData.customDescriptionText || '';
 
     const headerData: ExcelRow = {
       doc_invoice_id: this.extractInfo(xmlDoc, '//cbc:ID'),
@@ -337,6 +343,13 @@ export class CrtrXmlProcessor {
       invoice_type_code: this.extractInfo(xmlDoc, '//cbc:InvoiceTypeCode'),
       Notes: this.extractAll(xmlDoc, '//cbc:Note'),
       uuid: this.extractInfo(xmlDoc, '//cbc:UUID'),
+
+      // NEW: Invoice Document Reference
+      invoice_doc_reference:
+        this.extractInfo(xmlDoc, '//cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID') ||
+        this.extractInfo(xmlDoc, '//cac:DespatchDocumentReference/cbc:ID') ||
+        this.extractInfo(xmlDoc, '//cac:ReceiptDocumentReference/cbc:ID') ||
+        null,
     };
 
     // Supplier guard
@@ -366,7 +379,13 @@ export class CrtrXmlProcessor {
     const taxGlAccounts = customData.Tax.glAccount || { default: '' };
 
     const documentTaxes = this.extractDocumentLevelTaxTotals(xmlDoc, taxSchemeOverride);
-    const taxRegimeGroups = this.extractAndGroupLineItems(xmlDoc, descriptionField, documentTaxes.subtotalGroups, taxSchemeOverride);
+    const taxRegimeGroups = this.extractAndGroupLineItems(
+      xmlDoc,
+      descriptionField,
+      documentTaxes.subtotalGroups,
+      taxSchemeOverride,
+      customDescriptionText
+    );
 
     const grouped: Record<string, LineTaxGroup> = taxRegimeGroups.reduce((acc, group) => {
       acc[group.taxCode] = group;
@@ -378,7 +397,11 @@ export class CrtrXmlProcessor {
     const rows: ExcelRow[] = [];
 
     if (taxRegimeGroups.length > 0) {
-      taxRegimeGroups.forEach((group) => {
+      // LineGroup: sequential 1, 2, 3... per tax regime within THIS invoice
+      taxRegimeGroups.forEach((group, index) => {
+        const lineGroup = index + 1;
+
+        // ITEM row
         rows.push({
           ...headerData,
           ...itemCustomFields,
@@ -386,8 +409,10 @@ export class CrtrXmlProcessor {
           LineAmount: group.totalLineAmount.toFixed(2),
           TaxCode: '',
           LineDescription: group.LineDescription,
+          LineGroup: lineGroup,
         });
 
+        // TAX row (same LineGroup as its ITEM)
         const taxAmount = validation.reconciledTaxAmounts[group.taxCode] ?? group.totalTaxAmount;
         const taxGlEntry = taxGlAccounts[group.taxCode] || taxGlAccounts.default;
 
@@ -399,6 +424,7 @@ export class CrtrXmlProcessor {
           LineAmount: taxAmount.toFixed(2),
           TaxCode: group.taxCode,
           LineDescription: group.LineDescription,
+          LineGroup: lineGroup,
         });
       });
 
@@ -417,6 +443,7 @@ export class CrtrXmlProcessor {
         LineAmount: '0.00',
         TaxCode: '',
         LineDescription: '',
+        LineGroup: 1,
       });
     }
 
@@ -425,7 +452,12 @@ export class CrtrXmlProcessor {
 
   /* ─── Private helpers ─── */
 
-  private buildDescription(lineNode: Node, choice: DescriptionFieldChoice): string {
+  private buildDescription(lineNode: Node, choice: DescriptionFieldChoice, customText: string = ''): string {
+    // Custom: return user's free-text directly
+    if (choice === 'custom') {
+      return customText;
+    }
+
     const itemName = this.extractInfo(lineNode, './/cac:Item/cbc:Name') || '';
     const itemDescription = this.extractInfo(lineNode, './/cac:Item/cbc:Description') || '';
     const buyersID = this.extractInfo(lineNode, './/cac:Item/cac:BuyersItemIdentification/cbc:ID') || '';
