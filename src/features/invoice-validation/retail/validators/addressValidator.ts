@@ -177,21 +177,24 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
   }
 
   
-  const normalizedCitySubdivision = (addressFields.citySubdivisionName || '')
-    .toUpperCase()
-    .replace(/[^A-ZİĞÜŞÇÖ]/g, '');
+const normalizedCitySubdivision = (addressFields.citySubdivisionName || '')
+  .toUpperCase()
+  .replace(/[^A-ZİĞÜŞÇÖ]/g, '');
 
-  const validCitySubdivisions = ['ŞİŞLİ', 'ŞIŞLI', 'SISLI', 'SİSLİ'];
-  fieldValidations.citySubdivisionName =
-    addressFields.citySubdivisionName === NOT_FOUND ? false : validCitySubdivisions.includes(normalizedCitySubdivision);
+const validCitySubdivisions = ['ŞİŞLİ', 'ŞIŞLY', 'SISLI', 'SİSLİ'];
+fieldValidations.citySubdivisionName =
+  addressFields.citySubdivisionName === NOT_FOUND ? false : validCitySubdivisions.includes(normalizedCitySubdivision);
 
-  if (!fieldValidations.citySubdivisionName && addressFields.citySubdivisionName !== NOT_FOUND) {
-    addressErrors.push({
-      message: `<li><strong>İlçe:</strong> <span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
-        addressFields.citySubdivisionName
-      )}"</span> yerine <span style="color: green; background-color: #e0ffe0; padding: 2px 4px; border-radius: 3px;">"Şişli"</span> olmalıdır.</li>`,
-    });
-  }
+if (!fieldValidations.citySubdivisionName) {
+  const citySubdivisionDisplay =
+    addressFields.citySubdivisionName === NOT_FOUND
+      ? `<span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">[boş/eksik]</span>`
+      : `<span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(addressFields.citySubdivisionName)}"</span>`;
+  addressErrors.push({
+    message: `<li><strong>İlçe:</strong> ${citySubdivisionDisplay} yerine <span style="color: green; background-color: #e0ffe0; padding: 2px 4px; border-radius: 3px;">"Şişli"</span> olmalıdır.</li>`,
+  });
+}
+
 
  
   const normalizedCityName = (addressFields.cityName || '').toUpperCase().replace(/[^A-ZİĞÜŞÇÖ]/g, '');
