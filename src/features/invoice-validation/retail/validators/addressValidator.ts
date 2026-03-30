@@ -12,10 +12,6 @@ const toFoundValue = (v: string | null | undefined): string => {
   return s && s !== 'Unknown' ? s : NOT_FOUND;
 };
 
-/**
- * Try XPath first via converter.evaluateSingle, then fall back to field definition.
- * Maps xmlParser's 'Unknown' → local NOT_FOUND ('Bulunamadı') for consistent downstream checks.
- */
 const extractPreferXPathThenDef = (
   doc: Document,
   converter: XMLToExcelConverter,
@@ -29,9 +25,7 @@ const extractPreferXPathThenDef = (
   return fromDef === 'Unknown' ? NOT_FOUND : fromDef;
 };
 
-/**
- * Extract text by XPath only (no field definition fallback).
- */
+
 const extractTextByXPath = (
   doc: Document,
   converter: XMLToExcelConverter,
@@ -129,15 +123,15 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
 
 
   const normalizedPartyName = (addressFields.partyName || '')
-    .toUpperCase()
+    .toLocaleUpperCase('tr')
     .replace(/[^A-ZİĞÜŞÇÖ0-9]/g, '');
 
-  const requiredKeywords = ['AMAZON', 'TURKEY', 'PERAKENDE', 'HIZMET'] as const;
+  const requiredKeywords = ['AMAZON', 'TURKEY', 'PERAKENDE', 'HİZMET'] as const;
   const variations: Record<(typeof requiredKeywords)[number], string[]> = {
     AMAZON: ['AMAZON'],
     TURKEY: ['TURKEY', 'TURKIYE', 'TÜRKİYE'],
     PERAKENDE: ['PERAKENDE'],
-    HIZMET: ['HIZMET', 'HİZMET'],
+    HİZMET: ['HİZMET', 'HIZMET'],
   };
 
   const hasAllKeywords = requiredKeywords.every((k) => variations[k].some((v) => normalizedPartyName.includes(v)));
@@ -153,7 +147,7 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
   }
 
   
-  const normalizedStreet = (addressFields.streetName || '').toUpperCase().replace(/[^A-ZİĞÜŞÇÖ0-9]/g, '');
+  const normalizedStreet = (addressFields.streetName || '').toLocaleUpperCase('tr').replace(/[^A-ZİĞÜŞÇÖ0-9]/g, '');
   const streetRequirements = {
     esentepe: normalizedStreet.includes('ESENTEPE'),
     bahar: normalizedStreet.includes('BAHAR'),
@@ -177,27 +171,26 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
   }
 
   
-const normalizedCitySubdivision = (addressFields.citySubdivisionName || '')
-  .toUpperCase()
-  .replace(/[^A-ZİĞÜŞÇÖ]/g, '');
+  const normalizedCitySubdivision = (addressFields.citySubdivisionName || '')
+    .toLocaleUpperCase('tr')
+    .replace(/[^A-ZİĞÜŞÇÖ]/g, '');
 
-const validCitySubdivisions = ['ŞİŞLİ', 'ŞIŞLY', 'SISLI', 'SİSLİ'];
-fieldValidations.citySubdivisionName =
-  addressFields.citySubdivisionName === NOT_FOUND ? false : validCitySubdivisions.includes(normalizedCitySubdivision);
+  const validCitySubdivisions = ['ŞİŞLİ', 'ŞIŞLI', 'SISLI', 'SİSLİ'];
+  fieldValidations.citySubdivisionName =
+    addressFields.citySubdivisionName === NOT_FOUND ? false : validCitySubdivisions.includes(normalizedCitySubdivision);
 
-if (!fieldValidations.citySubdivisionName) {
-  const citySubdivisionDisplay =
-    addressFields.citySubdivisionName === NOT_FOUND
-      ? `<span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">[boş/eksik]</span>`
-      : `<span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(addressFields.citySubdivisionName)}"</span>`;
-  addressErrors.push({
-    message: `<li><strong>İlçe:</strong> ${citySubdivisionDisplay} yerine <span style="color: green; background-color: #e0ffe0; padding: 2px 4px; border-radius: 3px;">"Şişli"</span> olmalıdır.</li>`,
-  });
-}
-
+  if (!fieldValidations.citySubdivisionName) {
+    const citySubdivisionDisplay =
+      addressFields.citySubdivisionName === NOT_FOUND
+        ? `<span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">[boş/eksik]</span>`
+        : `<span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(addressFields.citySubdivisionName)}"</span>`;
+    addressErrors.push({
+      message: `<li><strong>İlçe:</strong> ${citySubdivisionDisplay} yerine <span style="color: green; background-color: #e0ffe0; padding: 2px 4px; border-radius: 3px;">"Şişli"</span> olmalıdır.</li>`,
+    });
+  }
 
  
-  const normalizedCityName = (addressFields.cityName || '').toUpperCase().replace(/[^A-ZİĞÜŞÇÖ]/g, '');
+  const normalizedCityName = (addressFields.cityName || '').toLocaleUpperCase('tr').replace(/[^A-ZİĞÜŞÇÖ]/g, '');
   const validCityNames = ['İSTANBUL', 'ISTANBUL'];
   fieldValidations.cityName = addressFields.cityName === NOT_FOUND ? false : validCityNames.includes(normalizedCityName);
 
@@ -228,10 +221,10 @@ if (!fieldValidations.citySubdivisionName) {
   }
 
   // 7) CountryCode (TR)
-  fieldValidations.countryCode = !addressFields.countryCode || addressFields.countryCode.toUpperCase() === 'TR';
+  fieldValidations.countryCode = !addressFields.countryCode || addressFields.countryCode.toLocaleUpperCase('tr') === 'TR';
   if (
     addressFields.countryCode &&
-    addressFields.countryCode.toUpperCase() !== 'TR' &&
+    addressFields.countryCode.toLocaleUpperCase('tr') !== 'TR' &&
     addressFields.countryCode !== NOT_FOUND
   ) {
     addressErrors.push({
@@ -242,7 +235,7 @@ if (!fieldValidations.citySubdivisionName) {
   }
 
   // 8) CountryName (Türkiye variants)
-  const normalizedCountryName = (addressFields.countryName || '').toUpperCase().replace(/[^A-ZİĞÜŞÇÖ]/g, '');
+  const normalizedCountryName = (addressFields.countryName || '').toLocaleUpperCase('tr').replace(/[^A-ZİĞÜŞÇÖ]/g, '');
   const validCountryNames = ['TÜRKİYE', 'TURKIYE', 'TÜRKIYE', 'TURKEY'];
 
   fieldValidations.countryName =
@@ -257,7 +250,7 @@ if (!fieldValidations.citySubdivisionName) {
   }
 
   // 9) TaxSchemeName (contains Zincirlikuyu)
-  const normalizedTaxScheme = (addressFields.taxSchemeName || '').toUpperCase().replace(/[^A-ZİĞÜŞÇÖ]/g, '');
+  const normalizedTaxScheme = (addressFields.taxSchemeName || '').toLocaleUpperCase('tr').replace(/[^A-ZİĞÜŞÇÖ]/g, '');
   const validTaxSchemes = ['ZİNCİRLİKUYU', 'ZINCIRLIKUYU'];
 
   fieldValidations.taxSchemeName =
