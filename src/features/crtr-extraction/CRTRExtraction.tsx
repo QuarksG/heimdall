@@ -11,6 +11,7 @@ import { CustomFieldsPanel } from './components/CustomFieldsPanel';
 import { ColumnSelector } from './components/ColumnSelector';
 import { DataTable } from './components/DataTable';
 import { SummaryPanel } from './components/SummaryPanel';
+import { TaxMismatchModal } from './components/TaxMismatchModal';
 
 const CRTRExtraction: React.FC = () => {
   const [selectedHeaders, setSelectedHeaders] = useState<HeaderDef[]>(DEFAULT_HEADERS);
@@ -22,14 +23,19 @@ const CRTRExtraction: React.FC = () => {
     showConfigPanel,
     customFieldConfig,
     descriptionField,
+    customDescription,
     uniqueTaxCodes,
+    taxMismatch,
 
     setSearchQuery,
     setShowConfigPanel,
     setCustomFieldConfig,
     setDescriptionField,
+    setCustomDescription,
     handleFileSelection,
     getFilteredData,
+    confirmDocumentOverride,
+    dismissMismatch,
   } = useCrtrProcessor();
 
   const filteredData = useMemo(() => getFilteredData(selectedHeaders), [getFilteredData, selectedHeaders]);
@@ -89,11 +95,19 @@ const CRTRExtraction: React.FC = () => {
           show={showConfigPanel}
           config={customFieldConfig}
           descriptionField={descriptionField}
+          customDescription={customDescription}
           onConfigChange={setCustomFieldConfig}
           onDescriptionFieldChange={setDescriptionField}
+          onCustomDescriptionChange={setCustomDescription}
           onApply={() => setShowConfigPanel(false)}
           onCancel={() => setShowConfigPanel(false)}
           uniqueTaxCodes={uniqueTaxCodes}
+        />
+
+        <TaxMismatchModal
+          mismatchInfo={taxMismatch}
+          onConfirmOverride={confirmDocumentOverride}
+          onDismiss={dismissMismatch}
         />
 
         <DataTable data={filteredData} headers={selectedHeaders} />

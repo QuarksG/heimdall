@@ -19,7 +19,7 @@ const FEATURES = [
       "Click Download as Excel to export the data to .xlsx.",
     ],
     expects: "Turkish UBL 2.1 e-fatura XML files (or ZIP archives containing them).",
-    outputs: "On-screen data table + downloadable Excel report.",
+    outputs: "On-screen data table + downloadable Excel report for pattern analysis.",
   },
   {
     id: "invoice-validation-retail",
@@ -32,7 +32,7 @@ const FEATURES = [
       "Upload a single XML invoice (or a ZIP with one invoice).",
       "The validator automatically extracts required fields and runs standard AP FinOps checks.",
       "Review the chat-style results for each field and check status.",
-      "Only invoices with all fields passing validation are considered  however because of updates and changes better to always issue first test invoice.",
+      "Only invoices with all fields passing validation are considered valid however because of updates and changes better to always issue first test invoice.",
     ],
     expects: "Single e-fatura XML file for Retail",
     outputs: " Validation report with pass/fail status per field.",
@@ -57,7 +57,7 @@ const FEATURES = [
     icon: "ph-chart-bar",
     route: "/invoice-validation/dropship",
     description:
-      "Validation engine built for Amazon Drop-Ship (Fulfilled by Partner) invoices. Checks dropship fields however the up to date standards subject to change. Please inform us accordingly",
+      "Validation engine built for Amazon Drop-Ship (Fulfilled by Partner) invoices. Checks dropship fields against accepted formats. The standards are subject to change. Any failure in validation should be reported me.",
     howTo: [
       "Upload a drop-ship XML invoice (or ZIP).",
       "The validator runs DF-specific checks",
@@ -155,7 +155,7 @@ const Home: React.FC = () => {
             <span className="home-step-num">3</span>
             <div>
               <strong>Start Processing</strong>
-              <p>Once approved, you can use unlocked feature by uploading your XML or ZIP files.</p>
+              <p>Once approved, you can use unlocked feature by uploading your XML or ZIPed e-fatura XML files.</p>
             </div>
           </div>
         </div>

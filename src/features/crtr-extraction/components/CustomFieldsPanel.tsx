@@ -2,12 +2,16 @@ import React from 'react';
 import type { CustomFieldsPanelProps, CustomFieldConfig } from '../types/crtr.types';
 import { CUSTOM_FIELD_DEFS, TAX_SCHEME_OPTIONS, DESCRIPTION_FIELD_OPTIONS } from '../constants/crtrDefaults';
 
+
+
 export const CustomFieldsPanel = ({
   show,
   config,
   descriptionField,
+  customDescription,
   onConfigChange,
   onDescriptionFieldChange,
+  onCustomDescriptionChange,
   onApply,
   onCancel,
   uniqueTaxCodes,
@@ -35,13 +39,6 @@ export const CustomFieldsPanel = ({
         ...prevConfig.Tax,
         glAccount: { ...prevConfig.Tax.glAccount, [key]: value },
       },
-    }));
-  };
-
-  const handleCustomDescriptionChange = (value: string): void => {
-    onConfigChange((prevConfig) => ({
-      ...prevConfig,
-      customDescriptionText: value,
     }));
   };
 
@@ -73,11 +70,11 @@ export const CustomFieldsPanel = ({
 
             {descriptionField === 'custom' && (
               <div>
-                <label className="lbl">Custom Description Text</label>
+                <label className="lbl">Custom Description</label>
                 <input
                   type="text"
-                  value={config.customDescriptionText}
-                  onChange={(e) => handleCustomDescriptionChange(e.target.value)}
+                  value={customDescription}
+                  onChange={(e) => onCustomDescriptionChange(e.target.value)}
                   className="txt-in"
                   placeholder="Enter custom description for all lines"
                 />

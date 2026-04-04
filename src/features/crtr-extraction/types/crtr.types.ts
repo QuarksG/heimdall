@@ -45,8 +45,6 @@ export interface CustomFieldConfig {
     glAccount: Record<string, string>;
     taxSchemeOverride: string;
   };
-  /** Free-text description entered by user (used when descriptionField = 'custom') */
-  customDescriptionText: string;
 }
 
 export interface DocumentTaxSubtotal {
@@ -82,6 +80,7 @@ export interface ValidationReport {
 export interface ExcelRow {
   [key: string]: unknown;
   doc_invoice_id?: string | null;
+  invoice_doc_reference?: string | null;
   invoice_date?: string | null;
   invoice_amount?: string | null;
   invoice_currency?: string | null;
@@ -92,11 +91,8 @@ export interface ExcelRow {
   LineAmount?: string;
   TaxCode?: string;
   LineDescription?: string;
-  Notes?: string | null;
-  /** Invoice document reference (e.g. despatch advice, order ref) */
-  invoice_doc_reference?: string | null;
-  /** Sequential group number per tax regime within a single invoice */
   LineGroup?: number;
+  Notes?: string | null;
 }
 
 export interface ProcessingError {
@@ -118,6 +114,28 @@ export type LineItemDetail = {
   description: string;
 };
 
+/* ─── Tax mismatch detection ─── */
+
+export interface TaxMismatchDetail {
+  invoiceId: string;
+  fileName: string;
+  /** Tax codes found at line level (e.g. ["KDV-TR-10%"]) */
+  lineGroupCodes: string[];
+  /** Tax codes found at document level (e.g. ["KDV-TR-10%", "KDV-TR-1%"]) */
+  documentCodes: string[];
+  /** Document-level codes that have NO matching line group */
+  missingInLines: string[];
+  /** Summary for display */
+  message: string;
+}
+
+export interface TaxMismatchInfo {
+  /** At least one invoice has a mismatch */
+  detected: boolean;
+  /** Details per invoice */
+  invoices: TaxMismatchDetail[];
+}
+
 /* ─── Component prop interfaces ─── */
 
 export interface HeaderProps {
@@ -134,11 +152,19 @@ export interface CustomFieldsPanelProps {
   show: boolean;
   config: CustomFieldConfig;
   descriptionField: DescriptionFieldChoice;
+  customDescription: string;
   onConfigChange: React.Dispatch<React.SetStateAction<CustomFieldConfig>>;
   onDescriptionFieldChange: React.Dispatch<React.SetStateAction<DescriptionFieldChoice>>;
+  onCustomDescriptionChange: (value: string) => void;
   onApply: () => void;
   onCancel: () => void;
   uniqueTaxCodes: string[];
+}
+
+export interface TaxMismatchModalProps {
+  mismatchInfo: TaxMismatchInfo;
+  onConfirmOverride: () => void;
+  onDismiss: () => void;
 }
 
 export interface ColumnSelectorProps {

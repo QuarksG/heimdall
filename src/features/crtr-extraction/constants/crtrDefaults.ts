@@ -7,7 +7,7 @@ export const ALL_HEADERS: HeaderDef[] = [
   { key: 'invoice_amount', label: 'Invoice Amount' },
   { key: 'invoice_currency', label: 'Currency' },
   { key: 'LineType', label: 'Line Type' },
-  { key: 'LineAmount', label: 'Line Amount' },
+  { key: 'LineAmount', label: 'Line Amt' },
   { key: 'TaxCode', label: 'Tax Code' },
   { key: 'LineDescription', label: 'Description' },
   { key: 'LineGroup', label: 'Line Group' },
@@ -33,7 +33,6 @@ export const ALL_HEADERS: HeaderDef[] = [
 export const DEFAULT_HEADERS: HeaderDef[] = ALL_HEADERS.filter((h) =>
   [
     'doc_invoice_id',
-    'invoice_doc_reference',
     'invoice_date',
     'invoice_amount',
     'invoice_currency',
@@ -107,5 +106,5 @@ export const DESCRIPTION_FIELD_OPTIONS: TaxSchemeOption[] = [
   { value: 'brandName', label: 'Brand Name' },
   { value: 'modelName', label: 'Model Name' },
   { value: 'allowanceReason', label: 'Allowance/Charge Reason' },
-  { value: 'custom', label: 'Custom (Manual Entry)' },
+  { value: 'custom', label: 'Custom (User Defined)' },
 ];

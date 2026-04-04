@@ -11,9 +11,12 @@ import type {
   HeaderDef,
   ProcessingError,
   SummaryData,
+  TaxMismatchInfo,
+  TaxMismatchDetail,
 } from '../types/crtr.types';
 
 const EMPTY_SUMMARY: SummaryData = { count: 0, totalInvoiceAmount: 0, totalCalculatedAmount: 0 };
+const EMPTY_MISMATCH: TaxMismatchInfo = { detected: false, invoices: [] };
 
 export const useCrtrProcessor = () => {
   const [data, setData] = useState<ExcelRow[]>([]);
@@ -23,7 +26,12 @@ export const useCrtrProcessor = () => {
   const [processingErrors, setProcessingErrors] = useState<ProcessingError[]>([]);
   const [showConfigPanel, setShowConfigPanel] = useState<boolean>(false);
   const [descriptionField, setDescriptionField] = useState<DescriptionFieldChoice>('combined');
+  const [customDescription, setCustomDescription] = useState<string>('');
   const [summaryData, setSummaryData] = useState<SummaryData>(EMPTY_SUMMARY);
+
+  // Tax mismatch state
+  const [taxMismatch, setTaxMismatch] = useState<TaxMismatchInfo>(EMPTY_MISMATCH);
+  const [useDocumentOverride, setUseDocumentOverride] = useState<boolean>(false);
 
   const [customFieldConfig, setCustomFieldConfig] = useState<CustomFieldConfig>({
     Item: {
@@ -40,7 +48,6 @@ export const useCrtrProcessor = () => {
       glAccount: { default: '' },
       taxSchemeOverride: '',
     },
-    customDescriptionText: '',
   });
 
   const uniqueTaxCodes = useMemo((): string[] => {
@@ -54,20 +61,33 @@ export const useCrtrProcessor = () => {
   }, [data]);
 
   const processAndSetData = useCallback(
-    (filesToProcess: ParsedInputFile[], config: CustomFieldConfig, descField: DescriptionFieldChoice) => {
+    (
+      filesToProcess: ParsedInputFile[],
+      config: CustomFieldConfig,
+      descField: DescriptionFieldChoice,
+      customDesc: string,
+      applyDocumentOverride: boolean
+    ) => {
       if (filesToProcess.length === 0) {
         setData([]);
         setSummaryData(EMPTY_SUMMARY);
         setProcessingErrors([]);
+        setTaxMismatch(EMPTY_MISMATCH);
         return;
       }
 
       const processor = new CrtrXmlProcessor();
       let allData: ExcelRow[] = [];
       const localErrors: ProcessingError[] = [];
+      const mismatchDetails: TaxMismatchDetail[] = [];
 
       setValidationError('');
       setProcessingErrors([]);
+
+      // Only clear mismatch state on fresh processing (not on override reprocess)
+      if (!applyDocumentOverride) {
+        setTaxMismatch(EMPTY_MISMATCH);
+      }
 
       processor.resetSupplierTracking();
 
@@ -75,11 +95,18 @@ export const useCrtrProcessor = () => {
         try {
           const xmlDoc = processor.transformXML(file.content);
           if (xmlDoc) {
-            const extracted = processor.extractDataForExcel(xmlDoc, {
+            const result = processor.extractDataForExcel(xmlDoc, {
               customData: config,
               descriptionField: descField,
-            });
-            allData.push(...extracted);
+              customDescription: customDesc,
+              useDocumentOverride: applyDocumentOverride,
+            }, file.name);
+
+            allData.push(...result.rows);
+
+            if (result.mismatch) {
+              mismatchDetails.push(result.mismatch);
+            }
           }
         } catch (error: unknown) {
           const err = error as Error;
@@ -97,6 +124,14 @@ export const useCrtrProcessor = () => {
 
       setData(allData);
       setProcessingErrors(localErrors);
+
+      // Surface mismatch info (only on first pass)
+      if (!applyDocumentOverride && mismatchDetails.length > 0) {
+        setTaxMismatch({
+          detected: true,
+          invoices: mismatchDetails,
+        });
+      }
 
       if (allData.length > 0) {
         const totalCalculated = allData.reduce((sum, row) => sum + parseFloat(String(row.LineAmount || 0)), 0);
@@ -127,6 +162,8 @@ export const useCrtrProcessor = () => {
 
     setValidationError('');
     setProcessingErrors([]);
+    setUseDocumentOverride(false);
+    setTaxMismatch(EMPTY_MISMATCH);
 
     try {
       const fileReadPromises: Array<Promise<ParsedInputFile[]>> = Array.from(files).map((file: File) => {
@@ -160,9 +197,20 @@ export const useCrtrProcessor = () => {
     }
   }, []);
 
+  /** User confirmed: reprocess with document-level override */
+  const confirmDocumentOverride = useCallback(() => {
+    setUseDocumentOverride(true);
+    setTaxMismatch(EMPTY_MISMATCH);
+  }, []);
+
+  /** User dismissed: keep original line-level data */
+  const dismissMismatch = useCallback(() => {
+    setTaxMismatch(EMPTY_MISMATCH);
+  }, []);
+
   useEffect(() => {
-    processAndSetData(rawFiles, customFieldConfig, descriptionField);
-  }, [customFieldConfig, rawFiles, descriptionField, processAndSetData]);
+    processAndSetData(rawFiles, customFieldConfig, descriptionField, customDescription, useDocumentOverride);
+  }, [customFieldConfig, rawFiles, descriptionField, customDescription, useDocumentOverride, processAndSetData]);
 
   const getFilteredData = useCallback(
     (selectedHeaders: HeaderDef[]) => {
@@ -183,14 +231,19 @@ export const useCrtrProcessor = () => {
     showConfigPanel,
     customFieldConfig,
     descriptionField,
+    customDescription,
     uniqueTaxCodes,
     searchQuery,
+    taxMismatch,
 
     setSearchQuery,
     setShowConfigPanel,
     setCustomFieldConfig,
     setDescriptionField,
+    setCustomDescription,
     handleFileSelection,
     getFilteredData,
+    confirmDocumentOverride,
+    dismissMismatch,
   };
 };
