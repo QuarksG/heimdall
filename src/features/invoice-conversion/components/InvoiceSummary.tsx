@@ -31,6 +31,7 @@ export const InvoiceSummary: React.FC<InvoiceSummaryProps> = ({ invoices, totals
         "Tax Exclusive (Item Total)": inv.taxExclusiveAmount,
         "Tax Amount": inv.taxInclusiveAmount - inv.taxExclusiveAmount,
         "Payable Amount": inv.payableAmount,
+        "Discount": inv.allowanceTotalAmount || 0,
       }));
 
       const ws = XLSX.utils.json_to_sheet(excelData);

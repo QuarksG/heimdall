@@ -185,6 +185,12 @@ export const initialFieldDefinitions: FieldDefinition[] = [
     label: 'Tax Type Code',
     xpaths: ['//cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cac:TaxScheme/cbc:TaxTypeCode'],
   },
+   {
+     key: 'invoice_discount_amount',
+     label: 'Invoice Discount Amount',
+     xpaths: ['//cac:LegalMonetaryTotal/cbc:AllowanceTotalAmount'],
+   },
+
   {
     key: 'item_name',
     label: 'Item Name',
@@ -253,6 +259,21 @@ export const initialFieldDefinitions: FieldDefinition[] = [
     xpaths: ['.//cbc:LineExtensionAmount'],
   },
   {
+    key: 'line_discount_amount',
+    label: 'Line Discount Amount',
+    isLineItem: true,
+    xpaths: ['.//cac:AllowanceCharge[cbc:ChargeIndicator[.="false"]]/cbc:Amount'],
+   },
+
+  {
+    key: 'line_discount_reason', 
+    label: 'Line Discount Reason',
+    isLineItem: true,
+    xpaths: ['.//cac:AllowanceCharge[cbc:ChargeIndicator[.="false"]]/cbc:AllowanceChargeReason'],
+
+  },
+
+  {
     key: 'tax_amount',
     label: 'Tax Amount (Line)',
     isLineItem: true,
@@ -308,7 +329,7 @@ export const getFieldsByCategory = () => {
       ['invoice_date', 'invoice_time', 'signing_time'].includes(f.key)
     ),
     amounts: initialFieldDefinitions.filter((f) =>
-      ['invoice_amount', 'invoice_currency', 'doc_tax_amount', 'doc_tax_currency'].includes(f.key)
+      ['invoice_amount','invoice_discount_amount', 'invoice_currency', 'doc_tax_amount', 'doc_tax_currency'].includes(f.key)
     ),
     references: initialFieldDefinitions.filter((f) =>
       ['order_reference_id', 'invoice_document_reference_id', 'delivery_note'].includes(f.key)

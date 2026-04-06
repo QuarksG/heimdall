@@ -33,7 +33,9 @@ export const exportToExcel = (
     'unit_price', 
     'line_total', 
     'doc_tax_amount', 
-    'doc_tax_rate'
+    'doc_tax_rate',
+    'invoice_discount_amount',
+    'line_discount_amount',
   ];
 
   selectedHeaders.forEach((header, colIndex) => {

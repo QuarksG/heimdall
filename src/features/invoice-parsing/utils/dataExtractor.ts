@@ -10,6 +10,7 @@ export interface InvoiceLine {
   priceCurrency: string;
   lineExtensionAmount: number;
   lineExtensionCurrency: string;
+  discountAmount: number;
 }
 
 export interface ExtractedInvoiceData {
@@ -27,6 +28,7 @@ export interface ExtractedInvoiceData {
   documentCurrency: string;
   taxExclusiveAmount: number;
   taxInclusiveAmount: number;
+  allowanceTotalAmount: number;
   lines: InvoiceLine[];
   [key: string]: any;
 }
@@ -46,6 +48,7 @@ const conversionFieldDefinitions: FieldDefinition[] = [
   { key: 'documentCurrency', label: 'Currency', xpaths: ['//cac:LegalMonetaryTotal/cbc:PayableAmount'], attribute: 'currencyID' },
   { key: 'taxExclusiveAmount', label: 'Tax Exclusive', xpaths: ['//cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount'] },
   { key: 'taxInclusiveAmount', label: 'Tax Inclusive', xpaths: ['//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount'] },
+  { key: 'allowanceTotalAmount', label: 'Discount', xpaths: ['//cac:LegalMonetaryTotal/cbc:AllowanceTotalAmount'] },
 ];
 
 const lineItemDefinitions: FieldDefinition[] = [
@@ -56,19 +59,20 @@ const lineItemDefinitions: FieldDefinition[] = [
   { key: 'priceAmount', label: 'Price', isLineItem: true, xpaths: ['.//cac:Price/cbc:PriceAmount'] },
   { key: 'priceCurrency', label: 'Currency', isLineItem: true, xpaths: ['.//cac:Price/cbc:PriceAmount'], attribute: 'currencyID' },
   { key: 'lineExtensionAmount', label: 'Total', isLineItem: true, xpaths: ['.//cbc:LineExtensionAmount'] },
-  { key: 'lineExtensionCurrency', label: 'Currency', isLineItem: true, xpaths: ['.//cbc:LineExtensionAmount'], attribute: 'currencyID' }
+  { key: 'lineExtensionCurrency', label: 'Currency', isLineItem: true, xpaths: ['.//cbc:LineExtensionAmount'], attribute: 'currencyID' },
+  { key: 'discountAmount', label: 'Discount', isLineItem: true, xpaths: ['.//cac:AllowanceCharge[cbc:ChargeIndicator[.="false"]]/cbc:Amount'] },
 ];
 
 export const extractInvoiceData = (xmlContent: string): ExtractedInvoiceData => {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
-  
+
   const parserError = xmlDoc.querySelector("parsererror");
   if (parserError) throw new Error("Invalid XML structure");
 
   const converter = new XMLToExcelConverter();
   const documentData: any = {};
-  
+
   conversionFieldDefinitions.forEach(field => {
     documentData[field.key] = converter.extractValue(xmlDoc, field);
   });
@@ -81,7 +85,8 @@ export const extractInvoiceData = (xmlContent: string): ExtractedInvoiceData => 
     priceAmount: parseFloat(line.priceAmount) || 0,
     priceCurrency: line.priceCurrency || 'TRY',
     lineExtensionAmount: parseFloat(line.lineExtensionAmount) || 0,
-    lineExtensionCurrency: line.lineExtensionCurrency || 'TRY'
+    lineExtensionCurrency: line.lineExtensionCurrency || 'TRY',
+    discountAmount: parseFloat(line.discountAmount) || 0,
   }));
 
   return {
@@ -99,6 +104,7 @@ export const extractInvoiceData = (xmlContent: string): ExtractedInvoiceData => 
     documentCurrency: documentData.documentCurrency || 'TRY',
     taxExclusiveAmount: parseFloat(documentData.taxExclusiveAmount) || 0,
     taxInclusiveAmount: parseFloat(documentData.taxInclusiveAmount) || 0,
-    lines
+    allowanceTotalAmount: parseFloat(documentData.allowanceTotalAmount) || 0,
+    lines,
   };
 };

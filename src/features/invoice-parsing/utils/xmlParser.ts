@@ -294,7 +294,7 @@ export class XMLToExcelConverter {
       const rowData: any = {};
 
       lineDefs.forEach(def => {
-        if (type === 'DespatchLine' && (def.key === 'unit_price' || def.key === 'line_total' || def.key.includes('tax'))) {
+        if (type === 'DespatchLine' && (def.key === 'unit_price'|| def.key.includes('discount')|| def.key === 'line_total' || def.key.includes('tax'))) {
           rowData[def.key] = 'N/A';
         } else {
           let val = this.extractValue(lineNode, def);
