@@ -456,7 +456,7 @@ const InvoiceControl: React.FC = () => {
 
         {messages.map((msg, i) => (
           <div key={i} className={`message ${msg.sender}`}>
-            <div className="message-content" dangerouslySetInnerHTML={{ __html: msg.text }} />
+            <div className="message-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }} />
           </div>
         ))}
 
