@@ -11,21 +11,13 @@ import type {
   TaxMismatchDetail,
 } from '../types/crtr.types';
 
-/**
- * Format tax rate for display: removes trailing ".00" but keeps fractional.
- * Examples: 20.00 → "20", 10.50 → "10.50", 0.00 → "0"
- */
+
 function formatTaxRate(rate: number): string {
   const fixed = rate.toFixed(2);
   return fixed.endsWith('.00') ? String(Math.round(rate)) : fixed;
 }
 
-/**
- * CRTR-specific XML processor.
- *
- * Composes the shared XMLToExcelConverter for parsing/namespace resolution
- * and adds CRTR-domain methods (tax extraction, line grouping, validation).
- */
+
 export class CrtrXmlProcessor {
   private converter: XMLToExcelConverter;
   private processedSuppliers: Set<string>;
@@ -35,16 +27,13 @@ export class CrtrXmlProcessor {
     this.processedSuppliers = new Set();
   }
 
-  /* ─── Delegated base methods ─── */
+
 
   transformXML(xmlContent: string): Document | null {
     return this.converter.transformXML(xmlContent);
   }
 
-  /**
-   * Single-node XPath extraction with optional attribute support.
-   * Extends base evaluateSingle (textContent-only) with getAttribute.
-   */
+  
   extractInfo(xmlNode: Node, xpath: string, attribute: string | null = null): string | null {
     const result = this.converter.xpathEvaluator.evaluate(
       xpath,
@@ -61,7 +50,7 @@ export class CrtrXmlProcessor {
       : null;
   }
 
-  /** Snapshot-concat extraction (all matching nodes joined). */
+ 
   extractAll(xmlNode: Node, xpath: string): string {
     const result = this.converter.xpathEvaluator.evaluate(
       xpath,
@@ -75,7 +64,7 @@ export class CrtrXmlProcessor {
       .join(', ');
   }
 
-  /** Snapshot node list for iteration. */
+
   private snapshotNodes(xmlNode: Node, xpath: string): XPathResult {
     return this.converter.xpathEvaluator.evaluate(
       xpath,
@@ -90,7 +79,7 @@ export class CrtrXmlProcessor {
     this.processedSuppliers.clear();
   }
 
-  /* ─── Tax scheme extraction ─── */
+
 
   extractTaxScheme(contextNode: Node, rootNode: Node): string {
     let scheme = this.extractInfo(contextNode, './/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cac:TaxScheme/cbc:Name');
@@ -111,13 +100,7 @@ export class CrtrXmlProcessor {
     return 'KDV';
   }
 
-  /* ─── Tax mismatch detection ─── */
 
-  /**
-   * Detects when document-level tax subtotals declare regimes that
-   * line-level grouping does not produce. This indicates a supplier
-   * compliance error (wrong Percent on invoice lines).
-   */
   detectTaxMismatch(
     lineGroups: Record<string, LineTaxGroup>,
     documentTaxes: DocumentTaxes,
@@ -127,7 +110,7 @@ export class CrtrXmlProcessor {
     const lineGroupCodes = Object.keys(lineGroups);
     const documentCodes = Object.keys(documentTaxes.subtotals);
 
-    // Find document-level codes with no matching line group
+    
     const missingInLines = documentCodes.filter((code) => !lineGroups[code]);
 
     if (missingInLines.length === 0) return null;
@@ -148,7 +131,7 @@ export class CrtrXmlProcessor {
     };
   }
 
-  /* ─── Line item grouping ─── */
+
 
   extractAndGroupLineItems(
     xmlNode: Node,
@@ -176,9 +159,7 @@ export class CrtrXmlProcessor {
       let overrideApplied = false;
 
       if (useDocumentOverride && documentTaxGroups && documentTaxGroups.length > 0) {
-        // ─── Document-level override mode ───
-        // Match this line's amount against document TaxSubtotal TaxableAmounts
-        // to determine the correct tax rate.
+  
         const matched = this.matchLineToDocumentSubtotal(lineAmount, documentTaxGroups);
 
         if (matched) {
@@ -252,15 +233,7 @@ export class CrtrXmlProcessor {
     return Object.values(taxRegimeGroups);
   }
 
-  /**
-   * Match a single line's amount against document-level TaxSubtotal TaxableAmounts.
-   *
-   * Strategy:
-   *  1. Exact match — line amount equals a subtotal's TaxableAmount
-   *  2. Subset match — line amount fits within a subtotal's remaining capacity
-   *
-   * Uses a tolerance of 0.02 for floating-point comparison.
-   */
+ 
   private documentSubtotalCapacity: Map<string, number> = new Map();
 
   resetDocumentSubtotalCapacity(subtotals: DocumentTaxSubtotal[]): void {
@@ -278,7 +251,7 @@ export class CrtrXmlProcessor {
   ): DocumentTaxSubtotal | null {
     const tolerance = 0.02;
 
-    // 1. Try exact match on TaxableAmount
+  
     for (const group of documentTaxGroups) {
       if (group.taxableAmount !== null) {
         if (Math.abs(lineAmount - group.taxableAmount) < tolerance) {
@@ -287,7 +260,7 @@ export class CrtrXmlProcessor {
       }
     }
 
-    // 2. Try remaining capacity match (for multi-line → single subtotal)
+    
     for (const group of documentTaxGroups) {
       const remaining = this.documentSubtotalCapacity.get(group.taxCode);
       if (remaining !== undefined && remaining >= lineAmount - tolerance) {
@@ -300,7 +273,7 @@ export class CrtrXmlProcessor {
     return null;
   }
 
-  /* ─── Document-level tax totals ─── */
+
 
   extractDocumentLevelTaxTotals(xmlNode: Node, taxSchemeOverride: string = ''): DocumentTaxes {
     const documentTaxTotal = this.extractInfo(xmlNode, '/*/cac:TaxTotal[not(ancestor::cac:InvoiceLine)]/cbc:TaxAmount');
@@ -342,7 +315,7 @@ export class CrtrXmlProcessor {
     return { totalTax: documentTotalTax, subtotals: taxSubtotals, subtotalGroups };
   }
 
-  /* ─── Tax validation & reconciliation ─── */
+ 
 
   validateAndReconcileTaxes(
     lineGroups: Record<string, LineTaxGroup>,
@@ -425,7 +398,7 @@ export class CrtrXmlProcessor {
     return validation;
   }
 
-  /* ─── Full extraction → ExcelRow[] ─── */
+
 
   extractDataForExcel(
     xmlDoc: Document,
@@ -465,7 +438,7 @@ export class CrtrXmlProcessor {
       uuid: this.extractInfo(xmlDoc, '//cbc:UUID'),
     };
 
-    // Supplier guard
+  
     if (this.processedSuppliers.size > 0) {
       const supplier = headerData.supplier_name;
       if (typeof supplier === 'string' && supplier.length > 0 && !this.processedSuppliers.has(supplier)) {
@@ -493,7 +466,7 @@ export class CrtrXmlProcessor {
 
     const documentTaxes = this.extractDocumentLevelTaxTotals(xmlDoc, taxSchemeOverride);
 
-    // Reset capacity tracker for document-level override matching
+    
     if (useDocumentOverride) {
       this.resetDocumentSubtotalCapacity(documentTaxes.subtotalGroups);
     }
@@ -512,7 +485,7 @@ export class CrtrXmlProcessor {
       return acc;
     }, {} as Record<string, LineTaxGroup>);
 
-    // ─── Mismatch detection (only in normal mode) ───
+   
     let mismatch: TaxMismatchDetail | null = null;
     if (!useDocumentOverride) {
       mismatch = this.detectTaxMismatch(
@@ -556,7 +529,7 @@ export class CrtrXmlProcessor {
         });
       });
 
-      // Append validation warnings + override audit trail to Notes
+      
       const auditNotes: string[] = [];
 
       if (useDocumentOverride) {
@@ -589,7 +562,7 @@ export class CrtrXmlProcessor {
     return { rows, mismatch };
   }
 
-  /* ─── Private helpers ─── */
+
 
   private buildDescription(lineNode: Node, choice: DescriptionFieldChoice, customText: string = ''): string {
     if (choice === 'custom') {

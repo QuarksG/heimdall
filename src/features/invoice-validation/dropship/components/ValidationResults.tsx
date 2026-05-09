@@ -27,7 +27,7 @@ const ValidationResults: React.FC<Props> = ({ messages, isProcessing }) => (
     {messages.map((msg, index) => (
       <div key={index} className={`message ${msg.sender}`}>
         <div className="message-content">
-          <div dangerouslySetInnerHTML={{ __html: msg.text }} />
+          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.text) }} />
         </div>
       </div>
     ))}
