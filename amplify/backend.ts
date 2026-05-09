@@ -25,6 +25,7 @@ const termsTable = backend.data.resources.tables.TermsAcceptance;
 termsTable.grantWriteData(backend.termsApi.resources.lambda);
 backend.termsApi.addEnvironment("TERMS_TABLE_NAME", termsTable.tableName);
 backend.termsApi.addEnvironment("CURRENT_TERMS_VERSION", "TOS_2026_02");
+backend.termsApi.addEnvironment("ALLOWED_ORIGIN", "https://main.d3p8snpek9jhao.amplifyapp.com");
 
 
 const preTokenLambda = backend.preTokenGeneration.resources.lambda;
@@ -49,8 +50,8 @@ const apiStack = backend.createStack("http-api-stack");
 const httpApi = new HttpApi(apiStack, "HeimdallHttpApi", {
   apiName: "heimdallHttpApi",
   corsPreflight: {
-    allowOrigins: ["*"],
-    allowHeaders: ["*"],
+    allowOrigins: ["https://main.d3p8snpek9jhao.amplifyapp.com"],
+    allowHeaders: ["authorization", "content-type"],
     allowMethods: [CorsHttpMethod.POST, CorsHttpMethod.OPTIONS],
   },
 });
