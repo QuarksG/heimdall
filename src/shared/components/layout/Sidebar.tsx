@@ -7,6 +7,13 @@ import {
 } from "../../../features/authentication/hooks/usePermissions";
 import { useAuth } from "../../../features/authentication/context/AuthContext";
 import userImage from "../../../assets/images/user.jpg";
+import {
+  SidebarIcons,
+  LockIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  type IconComponent,
+} from "../../../assets/icons";
 import "../../../styles/components/sidebar.css";
 
 const ROUTE_PATHS: Record<FeatureKey, string> = {
@@ -25,8 +32,11 @@ const ROUTE_PATHS: Record<FeatureKey, string> = {
 
 interface SidebarItemProps {
   id: FeatureKey;
-  icon: string;
   label: string;
+  /** Override the default icon from SidebarIcons if needed. */
+  icon?: IconComponent;
+  /** When true, the lock indicator is hidden even if the user lacks access. */
+  alwaysUnlocked?: boolean;
 }
 
 const Sidebar: React.FC = () => {
@@ -53,36 +63,45 @@ const Sidebar: React.FC = () => {
     if (path) navigate(path);
   };
 
-  const SidebarItem: React.FC<SidebarItemProps> = ({ id, icon, label }) => (
-    <li className={isActive(id) ? "active" : ""}>
-      <a
-        href="#"
-        onClick={(e) => {
-          e.preventDefault();
-          handleMenuClick(id);
-        }}
-      >
-        <div className="link-content">
-          <i className={`icon ph-bold ${icon}`}></i>
-          <span className="text">{label}</span>
-        </div>
+  const SidebarItem: React.FC<SidebarItemProps> = ({
+    id,
+    label,
+    icon,
+    alwaysUnlocked = false,
+  }) => {
+    const IconCmp = icon ?? SidebarIcons[id];
+    const showLock = !alwaysUnlocked && !isUnlocked(id);
 
-        {!isUnlocked(id) && (
-          <i
-            className="ph-bold ph-lock-key lock-icon"
-            title="Requires Approval"
-          ></i>
-        )}
-      </a>
-    </li>
-  );
+    return (
+      <li className={isActive(id) ? "active" : ""}>
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            handleMenuClick(id);
+          }}
+        >
+          <div className="link-content">
+            <span className="icon">
+              <IconCmp />
+            </span>
+            <span className="text">{label}</span>
+          </div>
+
+          {showLock && (
+            <span className="lock-icon" title="Requires Approval">
+              <LockIcon />
+            </span>
+          )}
+        </a>
+      </li>
+    );
+  };
 
   return (
     <div className={`sidebar ${isFolded ? "folded" : ""}`}>
       <div className="menu-btn" onClick={toggleSidebar}>
-        <i
-          className={`ph-bold ${isFolded ? "ph-caret-right" : "ph-caret-left"}`}
-        ></i>
+        {isFolded ? <ChevronRightIcon /> : <ChevronLeftIcon />}
       </div>
 
       {/* ── USER SECTION ── */}
@@ -103,45 +122,17 @@ const Sidebar: React.FC = () => {
         <div className="nav-group">
           <p className="group-title">E-FATURA</p>
           <ul>
-            {/* Home — always accessible */}
-            <li className={isActive("Home") ? "active" : ""}>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleMenuClick("Home");
-                }}
-              >
-                <div className="link-content">
-                  <i className="icon ph-bold ph-house-simple"></i>
-                  <span className="text">Home</span>
-                </div>
-              </a>
-            </li>
-
-            {/* Access Request — always accessible */}
-            <li className={isActive("AccessRequest") ? "active" : ""}>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleMenuClick("AccessRequest");
-                }}
-              >
-                <div className="link-content">
-                  <i className="icon ph-bold ph-shield-plus"></i>
-                  <span className="text">Access Request</span>
-                </div>
-              </a>
-            </li>
+            {/* Always-accessible entries */}
+            <SidebarItem id="Home" label="Home" alwaysUnlocked />
+            <SidebarItem id="AccessRequest" label="Access Request" alwaysUnlocked />
 
             {/* Feature items — lock icon shown if no access */}
-            <SidebarItem id="InvoiceParsing" icon="ph-file-text" label="Invoice Parsing" />
-            <SidebarItem id="InvoiceControl" icon="ph-calendar-blank" label="Retail Invoice Validator" />
-            <SidebarItem id="InvoiceVerify" icon="ph-chart-bar" label="Invoice Convert" />
-            <SidebarItem id="InvoiceValidateDF" icon="ph-chart-bar" label="DF Invoice Validator" />
-            <SidebarItem id="Recon" icon="ph-chart-bar" label="E-Reconciliation" />
-            <SidebarItem id="CRTRExtraction" icon="ph-file-export" label="CRTR Extraction" />
+            <SidebarItem id="InvoiceParsing" label="Invoice Parsing" />
+            <SidebarItem id="InvoiceControl" label="Retail Invoice Validator" />
+            <SidebarItem id="InvoiceVerify" label="Invoice Convert" />
+            <SidebarItem id="InvoiceValidateDF" label="DF Invoice Validator" />
+            <SidebarItem id="Recon" label="E-Reconciliation" />
+            <SidebarItem id="CRTRExtraction" label="CRTR Extraction" />
           </ul>
         </div>
       </div>
@@ -154,7 +145,7 @@ const Sidebar: React.FC = () => {
         <div className="nav-group">
           <p className="group-title">ADMIN</p>
           <ul>
-            <SidebarItem id="Settings" icon="ph-gear" label="Settings" />
+            <SidebarItem id="Settings" label="Settings" />
           </ul>
         </div>
 
@@ -164,36 +155,8 @@ const Sidebar: React.FC = () => {
         <div className="nav-group">
           <p className="group-title">ACCOUNT</p>
           <ul>
-            <li className={isActive("Help") ? "active" : ""}>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleMenuClick("Help");
-                }}
-              >
-                <div className="link-content">
-                  <i className="icon ph-bold ph-info"></i>
-                  <span className="text">Help</span>
-                </div>
-              </a>
-            </li>
-
-            {/* Logout */}
-            <li>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleMenuClick("Logout");
-                }}
-              >
-                <div className="link-content">
-                  <i className="icon ph-bold ph-sign-out"></i>
-                  <span className="text">Sign Out</span>
-                </div>
-              </a>
-            </li>
+            <SidebarItem id="Help" label="Help" alwaysUnlocked />
+            <SidebarItem id="Logout" label="Sign Out" alwaysUnlocked />
           </ul>
         </div>
       </div>
