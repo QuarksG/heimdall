@@ -73,75 +73,75 @@ Heimdall has one SPA plane and two backend planes:
   intentionally unauthenticated because it fires *before* the user
   has a Cognito account (`amplify/backend.ts:50–65`).
 
-```mermaid
-flowchart LR
-    subgraph Internet["Public Internet"]
-        U["User<br/>(Staff / Admin)"]
-    end
-
-    subgraph Edge["Amplify Edge"]
-        R53["Route 53<br/>(DNS)"]
-        CF["CloudFront<br/>(CDN + TLS)"]
-        AH["Amplify Hosting<br/>(SPA origin)"]
-    end
-
-    subgraph SPA["Heimdall SPA — Browser"]
-        direction TB
-        Pres["Presentation Layer<br/>(pages, components, AuthLayout)"]
-        App["Application Layer<br/>(AuthContext, usePermissions,<br/>ProtectedRoute, FeatureGate)"]
-        Dom["Bounded Contexts<br/>(src/features/*)"]
-        Inf["Infrastructure Adapters<br/>(Amplify SDK client,<br/>fetch for terms API)"]
-    end
-
-    subgraph Backend["AWS Amplify Gen 2 Backend"]
-        direction TB
-        subgraph IdP["Identity Plane"]
-            CUP["Cognito User Pool<br/>(Staff / Admin groups)"]
-            PSU["PreSignUp Lambda<br/>(domain allowlist +<br/>terms binding)"]
-            PTG["PreTokenGen Lambda<br/>(claims injection)"]
-        end
-        subgraph DataPl["Data Plane"]
-            AS["AppSync GraphQL API<br/>(userPool auth)"]
-            DDB1[("AccessRequest<br/>DynamoDB")]
-            DDB2[("Entitlement<br/>DynamoDB")]
-            DDB3[("TermsAcceptance<br/>DynamoDB")]
-        end
-        subgraph PreAuth["Pre-Auth Plane"]
-            APIGW["API Gateway<br/>HTTP API"]
-            TAPI["terms-api Lambda"]
-        end
-    end
-
-    subgraph Obs["Observability"]
-        CW["CloudWatch Logs"]
-        CT["CloudTrail"]
-    end
-
-    U -->|HTTPS| R53 --> CF --> AH --> Pres
-    Pres --> App --> Dom
-    Dom --> Inf
-
-    Inf -->|Cognito SRP<br/>signUp / signIn / confirm| CUP
-    Inf -->|GraphQL over HTTPS<br/>userPool JWT| AS
-    Inf -->|POST /onboarding/terms/accept<br/>(pre-auth)| APIGW
-
-    CUP -.->|trigger| PSU
-    CUP -.->|trigger| PTG
-    PTG -->|GetItem userId| DDB2
-
-    AS --> DDB1
-    AS --> DDB2
-    AS --> DDB3
-    APIGW --> TAPI --> DDB3
-
-    PSU -.->|logs| CW
-    PTG -.->|logs| CW
-    TAPI -.->|logs| CW
-    AS -.->|logs| CW
-    CUP -.->|audit| CT
-    APIGW -.->|audit| CT
-    DDB1 & DDB2 & DDB3 -.->|mutations| CT
-```
+   ```mermaid
+   flowchart LR
+       subgraph Internet["Public Internet"]
+           U["User<br/>(Staff / Admin)"]
+       end
+   
+       subgraph Edge["Amplify Edge"]
+           R53["Route 53<br/>(DNS)"]
+           CF["CloudFront<br/>(CDN + TLS)"]
+           AH["Amplify Hosting<br/>(SPA origin)"]
+       end
+   
+       subgraph SPA["Heimdall SPA — Browser"]
+           direction TB
+           Pres["Presentation Layer<br/>(pages, components, AuthLayout)"]
+           App["Application Layer<br/>(AuthContext, usePermissions,<br/>ProtectedRoute, FeatureGate)"]
+           Dom["Bounded Contexts<br/>(src/features/*)"]
+           Inf["Infrastructure Adapters<br/>(Amplify SDK client,<br/>fetch for terms API)"]
+       end
+   
+       subgraph Backend["AWS Amplify Gen 2 Backend"]
+           direction TB
+           subgraph IdP["Identity Plane"]
+               CUP["Cognito User Pool<br/>(Staff / Admin groups)"]
+               PSU["PreSignUp Lambda<br/>(domain allowlist +<br/>terms binding)"]
+               PTG["PreTokenGen Lambda<br/>(claims injection)"]
+           end
+           subgraph DataPl["Data Plane"]
+               AS["AppSync GraphQL API<br/>(userPool auth)"]
+               DDB1[("AccessRequest<br/>DynamoDB")]
+               DDB2[("Entitlement<br/>DynamoDB")]
+               DDB3[("TermsAcceptance<br/>DynamoDB")]
+           end
+           subgraph PreAuth["Pre-Auth Plane"]
+               APIGW["API Gateway<br/>HTTP API"]
+               TAPI["terms-api Lambda"]
+           end
+       end
+   
+       subgraph Obs["Observability"]
+           CW["CloudWatch Logs"]
+           CT["CloudTrail"]
+       end
+   
+       U -->|HTTPS| R53 --> CF --> AH --> Pres
+       Pres --> App --> Dom
+       Dom --> Inf
+   
+       Inf -->|Cognito SRP<br/>signUp / signIn / confirm| CUP
+       Inf -->|GraphQL over HTTPS<br/>userPool JWT| AS
+       Inf -->|POST /onboarding/terms/accept<br/>(pre-auth)| APIGW
+   
+       CUP -.->|trigger| PSU
+       CUP -.->|trigger| PTG
+       PTG -->|GetItem userId| DDB2
+   
+       AS --> DDB1
+       AS --> DDB2
+       AS --> DDB3
+       APIGW --> TAPI --> DDB3
+   
+       PSU -.->|logs| CW
+       PTG -.->|logs| CW
+       TAPI -.->|logs| CW
+       AS -.->|logs| CW
+       CUP -.->|audit| CT
+       APIGW -.->|audit| CT
+       DDB1 & DDB2 & DDB3 -.->|mutations| CT
+   ```
 
 A note on the sample diagram shared by the requester:
 
