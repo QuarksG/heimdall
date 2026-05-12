@@ -71,7 +71,7 @@ Heimdall has one SPA plane and two backend planes:
 - **Pre-auth plane** — one API Gateway HTTP API with one route
   (`POST /onboarding/terms/accept`) backed by a Lambda. This plane is
   intentionally unauthenticated because it fires *before* the user
-  has a Cognito account (`amplify/backend.ts:50–65`).
+  has a Cognito account (`amplify/backend.ts:50-65`).
 
 ```mermaid
 flowchart LR
@@ -85,7 +85,7 @@ flowchart LR
         AH["Amplify Hosting<br/>(SPA origin)"]
     end
 
-    subgraph SPA["Heimdall SPA — Browser"]
+    subgraph SPA["Heimdall SPA - Browser"]
         direction TB
         Pres["Presentation Layer<br/>(pages, components, AuthLayout)"]
         App["Application Layer<br/>(AuthContext, usePermissions,<br/>ProtectedRoute, FeatureGate)"]
@@ -123,7 +123,7 @@ flowchart LR
 
     Inf -->|Cognito SRP<br/>signUp / signIn / confirm| CUP
     Inf -->|GraphQL over HTTPS<br/>userPool JWT| AS
-    Inf -->|POST /onboarding/terms/accept<br/>(pre-auth)| APIGW
+    Inf -->|POST /onboarding/terms/accept<br/>pre-auth| APIGW
 
     CUP -.->|trigger| PSU
     CUP -.->|trigger| PTG
@@ -146,7 +146,7 @@ flowchart LR
 A note on the sample diagram shared by the requester:
 
 - The sample names the permission table `AccessGrants`. In the actual
-  schema (`amplify/data/resource.ts:36–45`) the model is
+  schema (`amplify/data/resource.ts:36-45`) the model is
   **`Entitlement`** with `userId` as its identifier. This document uses
   the real name throughout.
 - The sample lists AWS WAF on the edge. **WAF is not provisioned** in
@@ -198,9 +198,9 @@ identify the file or resource that owns that stop.
 
 ```mermaid
 flowchart LR
-    A0[("User<br/>🧑‍💻")]:::actor
+    A0[("User")]:::actor
 
-    subgraph L1["Line A — Hosting path (every request)"]
+    subgraph L1["Line A - Hosting path (every request)"]
         direction LR
         A1["Route 53<br/>DNS"]:::edge
         A2["CloudFront<br/>TLS + CDN"]:::edge
@@ -208,7 +208,7 @@ flowchart LR
         A4["React bundle<br/>loaded, AuthContext<br/>hydrates"]:::spa
     end
 
-    subgraph L2["Line B — Pre-auth compliance path"]
+    subgraph L2["Line B - Pre-auth compliance path"]
         direction LR
         B1["DisclosurePage.tsx<br/>user accepts terms"]:::spa
         B2["POST /onboarding/<br/>terms/accept"]:::api
@@ -217,7 +217,7 @@ flowchart LR
         B5["sessionStorage:<br/>acceptanceId + version"]:::spa
     end
 
-    subgraph L3["Line C — Authentication path"]
+    subgraph L3["Line C - Authentication path"]
         direction LR
         C1["Register.tsx<br/>Cognito signUp"]:::spa
         C2["PreSignUp Lambda<br/>(domain + terms check)"]:::fn
@@ -227,10 +227,10 @@ flowchart LR
         C6["PreTokenGen Lambda<br/>reads Entitlement"]:::fn
         C7[("Entitlement<br/>GetItem userId")]:::db
         C8["Cognito issues<br/>ID + Access tokens"]:::id
-        C9["AuthContext.refresh()<br/>parses claims"]:::spa
+        C9["AuthContext.refresh<br/>parses claims"]:::spa
     end
 
-    subgraph L4["Line D — In-app feature path"]
+    subgraph L4["Line D - In-app feature path"]
         direction LR
         D1["ProtectedRoute<br/>src/features/authentication/<br/>guards"]:::spa
         D2["MainLayout + Sidebar"]:::spa
@@ -239,7 +239,7 @@ flowchart LR
         D5["Browser-local processing<br/>(XML/XLSX/ZIP)"]:::spa
     end
 
-    subgraph L5["Line E — Access-request path"]
+    subgraph L5["Line E - Access-request path"]
         direction LR
         E1["AccessRequest.tsx<br/>form submit"]:::spa
         E2["AppSync<br/>AccessRequest.create"]:::api
@@ -282,7 +282,7 @@ summarised in §1.5.
 sequenceDiagram
     autonumber
     participant U as User
-    participant SPA as SPA (Disclosure → Register → Confirm → Login)
+    participant SPA as SPA (Disclosure - Register - Confirm - Login)
     participant APIGW as HTTP API
     participant TAPI as terms-api Lambda
     participant TDDB as TermsAcceptance (DDB)
@@ -302,24 +302,24 @@ sequenceDiagram
     SPA->>SPA: sessionStorage.set(acceptanceId, termsVersion)
 
     U->>SPA: /auth/register (email, password, name)
-    SPA->>CUP: signUp(…, clientMetadata:{acceptanceId, termsVersion})
+    SPA->>CUP: signUp(..., clientMetadata:{acceptanceId, termsVersion})
     CUP->>PSU: PreSignUp trigger (email, clientMetadata)
-    PSU->>PSU: domain ∈ allowlist ∧ acceptanceId ≠ ∅ ∧ version matches
+    PSU->>PSU: domain in allowlist AND acceptanceId non-empty AND version matches
     PSU-->>CUP: ok (autoConfirm=false, autoVerifyEmail=false)
-    CUP-->>SPA: UserSub issued; email code sent
+    CUP-->>SPA: UserSub issued, email code sent
 
-    U->>SPA: /auth/confirm (enter 6-digit code)
+    U->>SPA: open /auth/confirm with 6-digit code
     SPA->>CUP: confirmSignUp(email, code)
     CUP-->>SPA: confirmed
 
-    U->>SPA: /auth/login (email, password)
+    U->>SPA: open /auth/login with email and password
     SPA->>CUP: signIn
     CUP->>PTG: PreTokenGeneration trigger (sub)
     PTG->>EDDB: GetItem { userId: sub }
     EDDB-->>PTG: Item? (not yet present for brand-new user)
-    PTG-->>CUP: claimsOverride {custom:entitlements:"{country:"",allowedFeatures:[]}"}
+    PTG-->>CUP: claimsOverride custom:entitlements
     CUP-->>SPA: ID token + Access token
-    SPA->>SPA: AuthContext.refresh() → user.role=Staff, entitlements=empty
+    SPA->>SPA: AuthContext.refresh -> user.role=Staff, entitlements=empty
     SPA-->>U: Home with all feature tiles locked
 
     U->>SPA: /access-request (choose countries + features + justification)
@@ -335,7 +335,7 @@ sequenceDiagram
     CUP->>PTG: PreTokenGeneration trigger
     PTG->>EDDB: GetItem { userId: sub }
     EDDB-->>PTG: {country, allowedFeatures}
-    PTG-->>CUP: claimsOverride {custom:entitlements:…}
+    PTG-->>CUP: claimsOverride custom:entitlements
     CUP-->>SPA: ID token with entitlements
     SPA-->>U: tiles unlocked per allowedFeatures
 ```
@@ -352,23 +352,23 @@ sequenceDiagram
     participant ML as MainLayout
     participant FG as FeatureGate
     participant Perm as usePermissions
-    participant Feat as Feature page (e.g. InvoiceControl)
+    participant Feat as Feature page (InvoiceControl)
     participant FS as User filesystem
 
     U->>Browser: click "Retail Invoice Validator"
-    Browser->>Router: navigate("/invoice-validation/retail")
+    Browser->>Router: navigate /invoice-validation/retail
     Router->>PR: match route
     PR->>PR: isAuthenticated? (AuthContext)
     PR-->>Router: render children
     Router->>ML: MainLayout (sidebar + outlet)
-    Router->>FG: FeatureGate(featureId="InvoiceControl")
-    FG->>Perm: isUnlocked("InvoiceControl")
-    Perm->>Perm: isAdmin ∨ "invoice-validation" ∈ allowedFeatures
+    Router->>FG: FeatureGate(featureId=InvoiceControl)
+    FG->>Perm: isUnlocked(InvoiceControl)
+    Perm->>Perm: isAdmin OR invoice-validation in allowedFeatures
     Perm-->>FG: true
     FG->>Feat: render
     U->>Feat: upload invoice.xml / invoice.zip
     Feat->>FS: read file (no network)
-    Feat->>Feat: JSZip → DOMParser → 6 validators → DOMPurify → render
+    Feat->>Feat: JSZip -> DOMParser -> 6 validators -> DOMPurify -> render
     Feat-->>U: chat-style results
 ```
 
@@ -389,15 +389,15 @@ and the owning file.
 | CloudFront | Amplify Hosting | Edge access logs (optional), cache metrics | Amplify Hosting access logs (disabled today). |
 | Amplify Hosting origin | Amplify Hosting | Build logs, deploy status | Amplify console → `main` branch. |
 | React bundle load | Browser | Console errors; no server-side signal | Browser DevTools; **no client-side telemetry configured**. |
-| `DisclosurePage.tsx` | SPA | `console.warn` on fallback path (dev only, line 408–423) | DevTools. |
+| `DisclosurePage.tsx` | SPA | `console.warn` on fallback path (dev only, line 408-423) | DevTools. |
 | `POST /onboarding/terms/accept` | API Gateway | Access log (if enabled), 4xx/5xx count | API Gateway metrics; access log **not configured**. |
 | `terms-api` Lambda | Lambda | `console.error` on DDB failure (`handler.ts:72`) | CloudWatch Logs (`/aws/lambda/terms-api`). |
 | `TermsAcceptance` PutItem | DynamoDB | Mutations via CloudTrail data events (if enabled) | CloudTrail; default off. |
 | Cognito `signUp` | Cognito | Cognito user event log, SMS/email delivery | Cognito console; CloudTrail management events. |
-| `PreSignUp` Lambda | Lambda | Exception message passed back to client as-is | CloudWatch Logs (`/aws/lambda/preSignUp-…`). |
+| `PreSignUp` Lambda | Lambda | Exception message passed back to client as-is | CloudWatch Logs (`/aws/lambda/preSignUp-...`). |
 | Email code delivery | Cognito | Delivery failure in Cognito console | Cognito console → Users tab. |
 | Cognito `signIn` | Cognito | Cognito user events | Cognito console; CloudTrail. |
-| `PreTokenGen` Lambda | Lambda | `console.log` on match, `console.error` on DDB failure (`handler.ts:51, 96`) | CloudWatch Logs (`/aws/lambda/preTokenGeneration-…`). |
+| `PreTokenGen` Lambda | Lambda | `console.log` on match, `console.error` on DDB failure (`handler.ts:51, 96`) | CloudWatch Logs (`/aws/lambda/preTokenGeneration-...`). |
 | `Entitlement` GetItem | DynamoDB | Consumed RCUs, throttled reads | CloudWatch DDB metrics. |
 | `AuthContext.refresh()` | SPA | No logs; silent catch swallows errors (`AuthContext.tsx:108`) | DevTools only. **Improvement**: log to telemetry. |
 | `ProtectedRoute` / `FeatureGate` | SPA | No logs | DevTools; inspect `user`, `entitlements`, `isUnlocked` via React DevTools. |
@@ -712,12 +712,12 @@ erDiagram
     USER ||--o{ ACCESS_REQUEST : submits
     USER ||--o| ENTITLEMENT    : has
     ACCESS_REQUEST ||--o| ENTITLEMENT : "approval creates"
-    USER ||--o{ TERMS_ACCEPTANCE : "(binding via clientMetadata)"
+    USER ||--o{ TERMS_ACCEPTANCE : "binding via clientMetadata"
 
     USER {
         string cognito_sub PK
         string email
-        string group "Admin|Staff"
+        string group "Admin or Staff"
     }
 
     ACCESS_REQUEST {
@@ -728,7 +728,7 @@ erDiagram
         string country "CSV ISO codes"
         list requestedFeatures
         string justification
-        string status "PENDING|APPROVED|REJECTED"
+        string status "PENDING APPROVED REJECTED"
         string reviewedBy
         string reviewedAt
         string createdAt
@@ -834,7 +834,7 @@ async function preTokenGeneration(
 
 **Preconditions.**
 - Lambda role has `dynamodb:GetItem`, `dynamodb:ListTables` on the
-  target account (`backend.ts:36–47`).
+  target account (`backend.ts:36-47`).
 - `event.request.userAttributes.sub` is the Cognito user id.
 
 **Postconditions.**
@@ -934,16 +934,16 @@ INPUT:  event (Cognito PreTokenGeneration trigger event)
 OUTPUT: event with custom:entitlements claim set
 
 BEGIN
-  userId     ← event.request.userAttributes.sub
-  tableName  ← discoverEntitlementTable()        // cached per container
-  ent        ← { country: "", allowedFeatures: [] }
+  userId     <- event.request.userAttributes.sub
+  tableName  <- discoverEntitlementTable()        // cached per container
+  ent        <- { country: "", allowedFeatures: [] }
 
-  IF tableName ≠ NULL AND userId ≠ "" THEN
+  IF tableName != NULL AND userId != "" THEN
     TRY
-      item ← DDB.GetItem(tableName, { userId })
-      IF item ≠ NULL THEN
-        ent.country         ← item.country OR ""
-        ent.allowedFeatures ← item.allowedFeatures OR []
+      item <- DDB.GetItem(tableName, { userId })
+      IF item != NULL THEN
+        ent.country         <- item.country OR ""
+        ent.allowedFeatures <- item.allowedFeatures OR []
       END IF
     CATCH err
       LOG.error("DynamoDB read failed", err)
@@ -953,19 +953,19 @@ BEGIN
 
   IF ent.country = "" AND ent.allowedFeatures.length = 0 THEN
     // Legacy fallback: inline custom:entitlements on the user
-    raw ← event.request.userAttributes["custom:entitlements"]
+    raw <- event.request.userAttributes["custom:entitlements"]
     IF raw is non-empty string THEN
       TRY
-        parsed ← JSON.parse(raw)
-        ent.country         ← parsed.country OR ""
-        ent.allowedFeatures ← parsed.allowedFeatures OR []
+        parsed <- JSON.parse(raw)
+        ent.country         <- parsed.country OR ""
+        ent.allowedFeatures <- parsed.allowedFeatures OR []
       CATCH _ignored
       END TRY
     END IF
   END IF
 
   event.response.claimsOverrideDetails.claimsToAddOrOverride
-      ["custom:entitlements"] ← JSON.stringify(ent)
+      ["custom:entitlements"] <- JSON.stringify(ent)
 
   RETURN event
 END
@@ -1189,7 +1189,7 @@ should cover, in priority order:
 
 ### 3.1 IAM scoping for `preTokenGeneration`
 
-Current policy (`amplify/backend.ts:36–47`):
+Current policy (`amplify/backend.ts:36-47`):
 
 ```typescript
 Actions:   dynamodb:GetItem, Query, Scan, ListTables, DescribeTable
@@ -1211,13 +1211,13 @@ Proposed fix:
 ```pascal
 ALGORITHM preSignUpWithBinding(event)
 BEGIN
-  … existing domain checks …
+  ... existing domain checks ...
 
-  acceptance ← DDB.GetItem(TermsAcceptanceTable, { id: acceptanceId })
+  acceptance <- DDB.GetItem(TermsAcceptanceTable, { id: acceptanceId })
   IF acceptance = NULL THEN
     THROW "Terms acceptance not found"
   END IF
-  IF acceptance.termsVersion ≠ CURRENT_TERMS_VERSION THEN
+  IF acceptance.termsVersion != CURRENT_TERMS_VERSION THEN
     THROW "Terms version mismatch"
   END IF
 
@@ -1259,7 +1259,7 @@ Before the next market is onboarded:
   type-safe data client.
 - **AWS Cognito User Pool** — identity, with `preSignUp` and
   `preTokenGeneration` triggers.
-- **AWS AppSync** — GraphQL auto-generated from `a.schema(…)`.
+- **AWS AppSync** — GraphQL auto-generated from `a.schema(...)`.
 - **AWS DynamoDB** — three tables, on-demand.
 - **AWS API Gateway HTTP API** — single route, bespoke.
 - **AWS Lambda** — three functions (`preSignUp`, `preTokenGeneration`,
@@ -1274,7 +1274,7 @@ Before the next market is onboarded:
 
 ## Appendix A — File-level reference for on-call
 
-| If you suspect… | Open… |
+| If you suspect... | Open... |
 |---|---|
 | DNS or TLS | AWS Route 53 + CloudFront (Amplify Hosting console) |
 | Missing SPA resources | Amplify Hosting deploy logs |
@@ -1299,5 +1299,5 @@ Before the next market is onboarded:
   entitlement into the SPA. Written by `preTokenGeneration`.
 - **Pre-auth plane** — the API Gateway + Lambda that exists solely to
   record terms acceptance before a user has Cognito credentials.
-- **Metro map** — the Line A–E diagram in §1.3; the canonical picture
+- **Metro map** — the Line A-E diagram in §1.3; the canonical picture
   of how a request travels through Heimdall.
