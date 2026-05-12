@@ -14,6 +14,7 @@ language; every claim points to a specific file in the repository.
 | 04 | [Features](./04-features.md) | Per-feature deep dive with inputs, algorithms, outputs. |
 | 05 | [Build, Deploy & Operations](./05-operations.md) | Toolchain, CI/CD path, observability, runbook gaps. |
 | 06 | [Risks & Roadmap](./06-risks-and-roadmap.md) | Known defects, technical debt, the path to GA. |
+| 07 | [Architecture & User Journey](./07-architecture-and-journey.md) | DDD-aligned metro map + reviewable DynamoDB schema. |
 
 ## How to read this
 
