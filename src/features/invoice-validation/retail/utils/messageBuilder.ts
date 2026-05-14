@@ -19,7 +19,7 @@ export const getInitialGreeting = (): string =>
         <p class="xml-item" style="margin:0;"><strong>cbc:InvoiceTypeCode:</strong> Fatura türü</p>
         <p class="xml-item" style="margin:0;"><strong>cbc:Musterino:</strong> Müşteri No</p>
         <p class="xml-item" style="margin:0;"><strong>cac:OrderReference/cbc:ID:</strong> Amazon sipariş numarası</p>
-        <p class="xml-item" style="margin:0;"><strong>cac:BuyersItemIdentification/cbc:ID:</strong> ASIN veya ürün kodları</p>
+        <p class="xml-item" style="margin:0;"><strong>cac:BuyersItemIdentification/cbc:ID:</strong> ASIN veya ürün EAN kodları</p>
         <p class="xml-item" style="margin:0;"><strong>cac:AccountingCustomerParty/cbc:ID:</strong> Amazon Address</p>
         <p class="xml-item" style="margin:0;"><strong>cac:LineExtensionAmount/cbc:ID:</strong> KDV/Vergi detayları</p>
         <p class="xml-item" style="margin:0;"><strong>cbc:Note:</strong> Amazon Retail AP için iade faturaları ve onlara özgü ek notlar</p>
