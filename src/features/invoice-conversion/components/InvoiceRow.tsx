@@ -44,7 +44,7 @@ export const InvoiceRow: React.FC<InvoiceRowProps> = ({ invoice, onRemove, onCop
     toast.info("Preparing PDF...");
 
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const response = await fetch(`${apiUrl}/generate-pdf`, {
         method: 'POST',
         headers: {

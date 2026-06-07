@@ -3,6 +3,11 @@ amplify_outputs.json
 node_modules/
 dist/
 
+# Local env files
+.env
+.env.local
+.env.*.local
+
 .npm/
 
 .amplify/
