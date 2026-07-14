@@ -514,16 +514,16 @@ const fmt = (n: number | null | undefined): string => (n == null ? '—' : n.toF
 
 const renderGuidanceAndXml = (): string => {
   return [
-    `<h3 style="color:#2c3e50;margin:14px 0 6px 0;">Vergi Detayları</h3>`,
-    `<p style="color:#34495e;margin:0 0 8px 0;">Vergi detaylarında dikkat edilmesi gereken hususlar nelerdir?</p>`,
-    `<ul style="color:#34495e;line-height:1.5;margin:0 0 10px 0;padding-left:18px;">`,
+    `<h3 style="color:var(--hd-text-muted);margin:14px 0 6px 0;">Vergi Detayları</h3>`,
+    `<p style="color:var(--hd-text-muted);margin:0 0 8px 0;">Vergi detaylarında dikkat edilmesi gereken hususlar nelerdir?</p>`,
+    `<ul style="color:var(--hd-text-muted);line-height:1.5;margin:0 0 10px 0;padding-left:18px;">`,
     `<li>KDV matrahının aşağıdaki XML örneğindeki gibi <strong>LineExtensionAmount</strong> satırında yer alması gerekmektedir. (Önemli Not: Fatura üzerinde satır iskontosu yapıldığı takdirde dahi bu satırda iskonto sonrası Net KDV Matrahı bulunmalıdır.)</li>`,
     `<li>Hem ürün kalemleri hem de dip toplamda <strong>TaxableAmount = LineExtensionAmount</strong> eşitliği mutlaka sağlanmalıdır. Bu satırlardaki değerler de iskonto sonrası KDV matrahı olmalıdır; bu da otomatik olarak <strong>TaxExclusiveAmount</strong> değerine eşit olacaktır. Sonuçta bu 3 satırın eşitliği de sağlanacaktır.</li>`,
     `<li>KDV matrahı üzerinden hesaplanan KDV tutarı <strong>0.02 TL</strong>'den daha büyük bir sapma göstermemelidir. (Önemli Not: Amazon sistemi KDV'yi virgülden sonra 2 basamak olacak şekilde hesaplamaktadır. 2 basamak sonrasındaki değerler 2 basamağa yuvarlanır.)</li>`,
     `<li>Vergi bilgilerinin satır düzeyinde yer alması gerekmektedir. (KDV matrahı, KDV oranı ve KDV tutarı ürün kalemi bazında belirtilmelidir.)</li>`,
     `</ul>`,
-    `<p style="color:#2c3e50;margin:0 0 6px 0;"><strong>XML Örneği</strong></p>`,
-    `<pre style="background:#f8f9fa;border:1px solid #e5e7eb;border-radius:8px;padding:12px;overflow:auto;white-space:pre;margin:0;">${escapeHtml(
+    `<p style="color:var(--hd-text-muted);margin:0 0 6px 0;"><strong>XML Örneği</strong></p>`,
+    `<pre style="background:var(--hd-surface-2);border:1px solid var(--hd-border);border-radius:8px;padding:12px;overflow:auto;white-space:pre;margin:0;">${escapeHtml(
       TAX_XML_SAMPLE
     )}</pre>`,
   ].join('');
@@ -543,9 +543,9 @@ const renderSummaryOnly = (result: TaxValidationResult, toleranceTL: number): st
   const correctionTaxCodes = Object.keys(result.corrections).sort();
 
   return [
-    `<div style="background:#ecf0f1;padding:12px 14px;border-radius:8px;margin-top:8px;">`,
-    `<p style="color:#2c3e50;margin:0 0 6px 0;"><strong>Özet</strong></p>`,
-    `<ul style="color:#34495e;margin:0;padding-left:18px;line-height:1.6;">`,
+    `<div style="background:var(--hd-surface);padding:12px 14px;border-radius:8px;margin-top:8px;">`,
+    `<p style="color:var(--hd-text-muted);margin:0 0 6px 0;"><strong>Özet</strong></p>`,
+    `<ul style="color:var(--hd-text-muted);margin:0;padding-left:18px;line-height:1.6;">`,
     `<li>Hata: ${errorCount} | Uyarı: ${warningCount}</li>`,
     `<li>Satır net toplamı (LineExtensionAmount toplamı): ${fmt(result.aggregates.lineNetTotal)}</li>`,
     `<li>Satır vergi toplamı (satır TaxAmount toplamı): ${fmt(result.aggregates.lineTaxTotal)}</li>`,
@@ -561,39 +561,39 @@ const renderSummaryOnly = (result: TaxValidationResult, toleranceTL: number): st
     `</ul>`,
     topCodes.length > 0
       ? [
-          `<p style="color:#2c3e50;margin:10px 0 6px 0;"><strong>Bulgular (kategori bazında)</strong></p>`,
-          `<ul style="color:#34495e;margin:0;padding-left:18px;line-height:1.6;">`,
+          `<p style="color:var(--hd-text-muted);margin:10px 0 6px 0;"><strong>Bulgular (kategori bazında)</strong></p>`,
+          `<ul style="color:var(--hd-text-muted);margin:0;padding-left:18px;line-height:1.6;">`,
           ...topCodes.map(([code, count]) => `<li>${DOMPurify.sanitize(code)}: ${count}</li>`),
           `</ul>`,
         ].join('')
       : '',
     correctionTaxCodes.length > 0
       ? [
-          `<p style="color:#2c3e50;margin:10px 0 6px 0;"><strong>Dip toplam esas alınan vergi grupları</strong></p>`,
-          `<ul style="color:#34495e;margin:0;padding-left:18px;line-height:1.6;">`,
+          `<p style="color:var(--hd-text-muted);margin:10px 0 6px 0;"><strong>Dip toplam esas alınan vergi grupları</strong></p>`,
+          `<ul style="color:var(--hd-text-muted);margin:0;padding-left:18px;line-height:1.6;">`,
           ...correctionTaxCodes.map(tc => `<li>${DOMPurify.sanitize(tc)}</li>`),
           `</ul>`,
         ].join('')
       : '',
     result.splitExemptionIssues.length > 0
       ? [
-          `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px 14px;margin-top:10px;">`,
-          `<p style="color:#c2410c;margin:0 0 8px 0;"><strong>⚠️ Birden Fazla Vergi İstisna Kodu Tespit Edildi</strong></p>`,
+          `<div style="background:var(--hd-warning-bg);border:1px solid var(--hd-warning-border);border-radius:8px;padding:12px 14px;margin-top:10px;">`,
+          `<p style="color:var(--hd-text-muted);margin:0 0 8px 0;"><strong>⚠️ Birden Fazla Vergi İstisna Kodu Tespit Edildi</strong></p>`,
           ...result.splitExemptionIssues.map(split => {
             const rows = split.entries
               .map(e => `<li>İstisna Kodu: <strong>${DOMPurify.sanitize(e.exemptionCode ?? '—')}</strong> — KDV Matrahı: <strong>${fmt(e.taxableAmount)}</strong> TRY</li>`)
               .join('');
             const total = split.entries.reduce((s, e) => s + (e.taxableAmount ?? 0), 0);
             return [
-              `<p style="color:#34495e;margin:0 0 4px 0;">Vergi grubu <strong>${DOMPurify.sanitize(split.taxCode)}</strong> için birden fazla <code>TaxSubtotal</code> bulundu:</p>`,
-              `<ul style="color:#34495e;margin:0 0 8px 0;padding-left:18px;line-height:1.6;">${rows}</ul>`,
-              `<p style="color:#34495e;margin:0 0 8px 0;">Toplam: <strong>${fmt(total)}</strong> TRY</p>`,
+              `<p style="color:var(--hd-text-muted);margin:0 0 4px 0;">Vergi grubu <strong>${DOMPurify.sanitize(split.taxCode)}</strong> için birden fazla <code>TaxSubtotal</code> bulundu:</p>`,
+              `<ul style="color:var(--hd-text-muted);margin:0 0 8px 0;padding-left:18px;line-height:1.6;">${rows}</ul>`,
+              `<p style="color:var(--hd-text-muted);margin:0 0 8px 0;">Toplam: <strong>${fmt(total)}</strong> TRY</p>`,
             ].join('');
           }),
-          `<p style="color:#34495e;margin:8px 0 4px 0;"><strong>Neden sorun oluşturuyor?</strong></p>`,
-          `<p style="color:#34495e;margin:0 0 8px 0;">Amazon'un alıcı sistemi her vergi grubu için yalnızca <strong>tek bir TaxSubtotal</strong> işler. Birden fazla istisna kodu (örn. 335 ve 350) aynı KDV oranına sahip olsa bile farklı vergi satırlarına eşlenir. Bu durumda KDV matrahı (<code>TaxableAmount</code>) ile satır net toplamı (<code>LineExtensionAmount</code>) eşleşmez ve fatura reddedilir.</p>`,
-          `<p style="color:#34495e;margin:0 0 4px 0;"><strong>Çözüm:</strong></p>`,
-          `<p style="color:#34495e;margin:0;">Tüm vergi matrahlarını tek bir <code>TaxSubtotal</code> altında, tek bir istisna koduyla birleştirin. <code>TaxableAmount</code> değeri <code>TaxExclusiveAmount</code> ve <code>LineExtensionAmount</code> toplamına eşit olmalıdır.</p>`,
+          `<p style="color:var(--hd-text-muted);margin:8px 0 4px 0;"><strong>Neden sorun oluşturuyor?</strong></p>`,
+          `<p style="color:var(--hd-text-muted);margin:0 0 8px 0;">Amazon'un alıcı sistemi her vergi grubu için yalnızca <strong>tek bir TaxSubtotal</strong> işler. Birden fazla istisna kodu (örn. 335 ve 350) aynı KDV oranına sahip olsa bile farklı vergi satırlarına eşlenir. Bu durumda KDV matrahı (<code>TaxableAmount</code>) ile satır net toplamı (<code>LineExtensionAmount</code>) eşleşmez ve fatura reddedilir.</p>`,
+          `<p style="color:var(--hd-text-muted);margin:0 0 4px 0;"><strong>Çözüm:</strong></p>`,
+          `<p style="color:var(--hd-text-muted);margin:0;">Tüm vergi matrahlarını tek bir <code>TaxSubtotal</code> altında, tek bir istisna koduyla birleştirin. <code>TaxableAmount</code> değeri <code>TaxExclusiveAmount</code> ve <code>LineExtensionAmount</code> toplamına eşit olmalıdır.</p>`,
           `</div>`,
         ].join('')
       : '',

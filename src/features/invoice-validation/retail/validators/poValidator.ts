@@ -21,7 +21,7 @@ const toFoundValue = (v: string | null): string => {
 const pushMissingPOMessage = (messages: string[]) => {
   messages.push(
     '<h3>Faturanızda Amazon Sipariş Numarasına Ait XML Satırı Bulunmuyor:</h3>',
-    '<p>Sipariş emri, <span style="color: red; font-weight: bold;">OrderReference</span> satırında yer almalı ve 8 haneli olmalıdır. Not satırına yazılan PO (Sipariş No) kodları geçerli değildir. Her fatura için yalnızca tek bir PO kodu geçerlidir; bu nedenle ilgili PO kodu, ilgili PO satırına girilmelidir. PO kodunu lütfen yalnızca bir kez yazın; başka bir harf, karakter veya bilgi eklemeyin.</p>',
+    '<p>Sipariş emri, <span style="color: var(--hd-danger-text); font-weight: bold;">OrderReference</span> satırında yer almalı ve 8 haneli olmalıdır. Not satırına yazılan PO (Sipariş No) kodları geçerli değildir. Her fatura için yalnızca tek bir PO kodu geçerlidir; bu nedenle ilgili PO kodu, ilgili PO satırına girilmelidir. PO kodunu lütfen yalnızca bir kez yazın; başka bir harf, karakter veya bilgi eklemeyin.</p>',
     '<p><em><strong>PO (Sipariş Emri) ve ASIN kodlarını bulmak için: Vendor Central &gt; Siparişler &gt; Sipariş Emirleri</strong></em></p>',
     '<p>Aşağıda PO satırının XML formatındaki örneği verilmiştir. Faturanızda bu XML satırının eklenmesi/güncellenmesi gerekmektedir:</p>',
     `<pre><code>&lt;cac:OrderReference&gt;
@@ -39,7 +39,7 @@ const pushInvalidPOMessage = (messages: string[], orderReference: string, orderR
     `<p>${sanitize(lengthMessage)}</p>`,
     '<p>Aşağıda PO satırına girdiğiniz değerin XML formatındaki görünümü verilmiştir:</p>',
     `<pre><code>&lt;cac:OrderReference&gt;
-          &lt;cbc:ID&gt;<span style="color: red;">${sanitize(orderReference)}</span>&lt;/cbc:ID&gt;
+          &lt;cbc:ID&gt;<span style="color: var(--hd-danger-text);">${sanitize(orderReference)}</span>&lt;/cbc:ID&gt;
           &lt;cbc:IssueDate&gt;${sanitize(orderReferenceDate) || 'Bulunamadı'}&lt;/cbc:IssueDate&gt;
         &lt;/cac:OrderReference&gt;</code></pre>`
   );

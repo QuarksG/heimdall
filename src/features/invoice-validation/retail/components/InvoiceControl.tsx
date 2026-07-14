@@ -167,7 +167,7 @@ const InvoiceControl: React.FC = () => {
         } catch (error) {
           addMessage(
             'bot',
-            `<h3 style="color:#d32f2f;">❌ Fatura Başlığı Doğrulanamadı</h3>
+            `<h3 style="color:var(--hd-danger-text);">❌ Fatura Başlığı Doğrulanamadı</h3>
              <p>Dosya: <strong>${DOMPurify.sanitize(fileName)}</strong></p>
              <p>Hata: ${error instanceof Error ? DOMPurify.sanitize(error.message) : 'Bilinmeyen hata'}</p>`
           );
@@ -187,7 +187,7 @@ const InvoiceControl: React.FC = () => {
         } catch (error) {
           hasErrors = true;
           messageParts.push(
-            `<h3 style="color:#d32f2f;">❌ Adres Doğrulama Hatası</h3>
+            `<h3 style="color:var(--hd-danger-text);">❌ Adres Doğrulama Hatası</h3>
              <p>Hata: ${error instanceof Error ? DOMPurify.sanitize(error.message) : 'Bilinmeyen hata'}</p>`
           );
         }
@@ -209,7 +209,7 @@ const InvoiceControl: React.FC = () => {
           const malformed = iadeDetection.detectedHits.filter((h) => !h.strict);
 
           messageParts.push(
-            '<h3 style="color:#d32f2f;">❌ Hatalı Fatura Türü Tespit Edildi:</h3>',
+            '<h3 style="color:var(--hd-danger-text);">❌ Hatalı Fatura Türü Tespit Edildi:</h3>',
             `<p>Faturanızda <strong>IQV/IPV</strong> göstergeleri tespit edildi ancak <code>InvoiceTypeCode</code> alanı <strong>IADE</strong> olarak ayarlanmamış.</p>`,
             `<p><strong>Tespit edilen değerler:</strong> ${iadeDetection.detectedCodes.map((x) => DOMPurify.sanitize(x)).join(', ')}</p>`,
             `<p><strong>Değerlerin bulunduğu alanlar:</strong></p>`,
@@ -220,7 +220,7 @@ const InvoiceControl: React.FC = () => {
 
           if (malformed.length > 0) {
             messageParts.push(
-              '<div style="margin: 14px 0; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 6px;">' +
+              '<div style="margin: 14px 0; padding: 12px; background: var(--hd-warning-bg); border-left: 4px solid var(--hd-warning-border); border-radius: 6px;">' +
                 '<p style="margin:0 0 8px 0;"><strong>⚠️ Ek tespit:</strong> IQV/IPV formatı hatalı görünüyor (IQV/IPV sonrası <strong>13 hane</strong> olmalıdır).</p>' +
                 `<ul style="margin:0; padding-left:18px;">${malformed
                   .map((h) => `<li>${DOMPurify.sanitize(h.raw)} (hane sayısı: ${h.digitCount})</li>`)
@@ -246,7 +246,7 @@ const InvoiceControl: React.FC = () => {
         } catch (error) {
           hasErrors = true;
           messageParts.push(
-            `<h3 style="color:#d32f2f;">❌ PO Doğrulama Hatası</h3>
+            `<h3 style="color:var(--hd-danger-text);">❌ PO Doğrulama Hatası</h3>
              <p>Hata: ${error instanceof Error ? DOMPurify.sanitize(error.message) : 'Bilinmeyen hata'}</p>`
           );
         }
@@ -261,7 +261,7 @@ const InvoiceControl: React.FC = () => {
           } catch (error) {
             hasErrors = true;
             messageParts.push(
-              `<h3 style="color:#d32f2f;">❌ IADE Doğrulama Hatası</h3>
+              `<h3 style="color:var(--hd-danger-text);">❌ IADE Doğrulama Hatası</h3>
                <p>Hata: ${error instanceof Error ? DOMPurify.sanitize(error.message) : 'Bilinmeyen hata'}</p>`
             );
           }
@@ -275,7 +275,7 @@ const InvoiceControl: React.FC = () => {
           } catch (error) {
             hasErrors = true;
             messageParts.push(
-              `<h3 style="color:#d32f2f;">❌ ASIN Doğrulama Hatası</h3>
+              `<h3 style="color:var(--hd-danger-text);">❌ ASIN Doğrulama Hatası</h3>
                <p>Hata: ${error instanceof Error ? DOMPurify.sanitize(error.message) : 'Bilinmeyen hata'}</p>`
             );
           }
@@ -291,7 +291,7 @@ const InvoiceControl: React.FC = () => {
         } catch (error) {
           hasErrors = true;
           messageParts.push(
-            `<h3 style="color:#d32f2f;">❌ Vergi Doğrulama Hatası</h3>
+            `<h3 style="color:var(--hd-danger-text);">❌ Vergi Doğrulama Hatası</h3>
              <p>Hata: ${error instanceof Error ? DOMPurify.sanitize(error.message) : 'Bilinmeyen hata'}</p>`
           );
         }
@@ -324,7 +324,7 @@ const InvoiceControl: React.FC = () => {
           messageParts.push(
             '<p>Merhaba Değerli Tedarikçimiz,</p>',
             `<p>Yukarıdaki fatura numarası ile ilgili faturanızı kontrol ettiğiniz için teşekkür ederiz.</p>`,
-            `<p>${companyLine} <strong>${safeInvoiceNo}</strong> numaralı fatura kontrol edilmiş ve <strong style="color:#2e7d32;">hatasız</strong> olduğu tespit edilmiştir.</p>`,
+            `<p>${companyLine} <strong>${safeInvoiceNo}</strong> numaralı fatura kontrol edilmiş ve <strong style="color:var(--hd-success-text);">hatasız</strong> olduğu tespit edilmiştir.</p>`,
             `<p>Faturanızdaki Amazon müşteri bilgileri doğru girilmiştir, ancak bu applikasyon yalnız Amazon standartlarını kontrol etmektedir. Faturanıza PO/ASIN veya diğer teknik detayları girdiğinizden emin değilseniz, GİB üzerinden her zaman toplu fatura göndermezden önce test faturanızı iletiniz.</p>`,
             '<p>Teşekkür ederiz.</p>'
           );
@@ -334,7 +334,7 @@ const InvoiceControl: React.FC = () => {
       } catch (error) {
         addMessage(
           'bot',
-          `<h3 style="color:#d32f2f;">💥 Kritik Hata</h3>
+          `<h3 style="color:var(--hd-danger-text);">💥 Kritik Hata</h3>
            <p>Dosya: <strong>${DOMPurify.sanitize(fileName)}</strong></p>
            <p>Fatura işlenirken beklenmeyen bir hata oluştu.</p>
            <p><strong>Hata Detayı:</strong> ${error instanceof Error ? DOMPurify.sanitize(error.message) : 'Bilinmeyen hata'}</p>`
@@ -433,7 +433,7 @@ const InvoiceControl: React.FC = () => {
       } catch (error) {
         addMessage(
           'bot',
-          `<h3 style="color:#d32f2f;">💥 Dosya İşleme Hatası</h3>
+          `<h3 style="color:var(--hd-danger-text);">💥 Dosya İşleme Hatası</h3>
            <p>Dosya: <strong>${DOMPurify.sanitize(name)}</strong></p>
            <p><strong>Hata:</strong> ${error instanceof Error ? DOMPurify.sanitize(error.message) : 'Bilinmeyen hata'}</p>`
         );

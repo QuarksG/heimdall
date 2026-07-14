@@ -1,3 +1,4 @@
+
 import DOMPurify from 'dompurify';
 import type { XMLToExcelConverter } from '../../../invoice-parsing/utils/xmlParser';
 
@@ -97,23 +98,23 @@ export const validateDFAsins = (
 
   if (missingASINs.length > 0) {
     messages.push(
-      `<h3 style="color:#d32f2f;margin-top:20px;">ASIN Eksik:</h3>`,
+      `<h3 style="color:var(--hd-danger-text);margin-top:20px;">ASIN Eksik:</h3>`,
       `<p>Aşağıdaki satırlarda <code>BuyersItemIdentification</code> &lt;cbc:ID&gt; alanı bulunamadı:</p>`,
       `<table style="border-collapse:collapse;width:100%;text-align:left;margin:8px 0;">`,
-      `<thead><tr style="background:#f5f5f5;">`,
-      `<th style="padding:8px;border:1px solid #e0e0e0;">Ürün Adı (cbc:Name)</th>`,
-      `<th style="padding:8px;border:1px solid #e0e0e0;">Seller's Item ID</th>`,
-      `<th style="padding:8px;border:1px solid #e0e0e0;">Manufacturer's Item ID</th>`,
+      `<thead><tr style="background:var(--hd-surface);">`,
+      `<th style="padding:8px;border:1px solid var(--hd-border);">Ürün Adı (cbc:Name)</th>`,
+      `<th style="padding:8px;border:1px solid var(--hd-border);">Seller's Item ID</th>`,
+      `<th style="padding:8px;border:1px solid var(--hd-border);">Manufacturer's Item ID</th>`,
       `</tr></thead><tbody>`,
       ...missingASINs.map(
         (e) =>
-          `<tr><td style="padding:6px 8px;border:1px solid #e0e0e0;">${sanitize(e.itemName)}</td><td style="padding:6px 8px;border:1px solid #e0e0e0;">${sanitize(
+          `<tr><td style="padding:6px 8px;border:1px solid var(--hd-border);">${sanitize(e.itemName)}</td><td style="padding:6px 8px;border:1px solid var(--hd-border);">${sanitize(
             e.sellersItemId
-          )}</td><td style="padding:6px 8px;border:1px solid #e0e0e0;">${sanitize(e.manufacturersItemId)}</td></tr>`
+          )}</td><td style="padding:6px 8px;border:1px solid var(--hd-border);">${sanitize(e.manufacturersItemId)}</td></tr>`
       ),
       `</tbody></table>`,
       `<p>Lütfen bu satırlara geçerli bir ASIN kodunu <code>BuyersItemIdentification</code> içinde ekleyiniz.</p>`,
-      `<pre style="background:#f5f5f5;padding:10px;border-radius:5px;overflow-x:auto;"><code>&lt;cac:Item&gt;
+      `<pre style="background:var(--hd-surface);padding:10px;border-radius:5px;overflow-x:auto;"><code>&lt;cac:Item&gt;
   &lt;cbc:Name&gt;ÜRÜN ADI&lt;/cbc:Name&gt;
   &lt;cac:BuyersItemIdentification&gt;
     &lt;cbc:ID&gt;<strong>B0XXXXXXXXX</strong>&lt;/cbc:ID&gt;
@@ -124,26 +125,26 @@ export const validateDFAsins = (
 
   if (invalidASINs.length > 0) {
     messages.push(
-      `<h3 style="color:#d32f2f;margin-top:20px;">Geçersiz ASIN Kodu:</h3>`,
+      `<h3 style="color:var(--hd-danger-text);margin-top:20px;">Geçersiz ASIN Kodu:</h3>`,
       `<p>Aşağıdaki ürünler için ASIN kodları geçerli değildir:</p>`,
       `<table style="border-collapse:collapse;width:100%;text-align:left;margin:8px 0;">`,
-      `<thead><tr style="background:#f5f5f5;">`,
-      `<th style="padding:8px;border:1px solid #e0e0e0;">Ürün Adı</th>`,
-      `<th style="padding:8px;border:1px solid #e0e0e0;">Girilen Değer</th>`,
-      `<th style="padding:8px;border:1px solid #e0e0e0;">Seller's Item ID</th>`,
-      `<th style="padding:8px;border:1px solid #e0e0e0;">Manufacturer's Item ID</th>`,
+      `<thead><tr style="background:var(--hd-surface);">`,
+      `<th style="padding:8px;border:1px solid var(--hd-border);">Ürün Adı</th>`,
+      `<th style="padding:8px;border:1px solid var(--hd-border);">Girilen Değer</th>`,
+      `<th style="padding:8px;border:1px solid var(--hd-border);">Seller's Item ID</th>`,
+      `<th style="padding:8px;border:1px solid var(--hd-border);">Manufacturer's Item ID</th>`,
       `</tr></thead><tbody>`,
       ...invalidASINs.map(
         (e) =>
-          `<tr><td style="padding:6px 8px;border:1px solid #e0e0e0;">${sanitize(e.itemName)}</td><td style="padding:6px 8px;border:1px solid #e0e0e0;color:#d32f2f;font-weight:bold;">${sanitize(
+          `<tr><td style="padding:6px 8px;border:1px solid var(--hd-border);">${sanitize(e.itemName)}</td><td style="padding:6px 8px;border:1px solid var(--hd-border);color:var(--hd-danger-text);font-weight:bold;">${sanitize(
             e.invalidValue ?? ''
-          )}</td><td style="padding:6px 8px;border:1px solid #e0e0e0;">${sanitize(e.sellersItemId)}</td><td style="padding:6px 8px;border:1px solid #e0e0e0;">${sanitize(
+          )}</td><td style="padding:6px 8px;border:1px solid var(--hd-border);">${sanitize(e.sellersItemId)}</td><td style="padding:6px 8px;border:1px solid var(--hd-border);">${sanitize(
             e.manufacturersItemId
           )}</td></tr>`
       ),
       `</tbody></table>`,
       `<p>ASIN 10 karakter uzunluğunda olmalı ve "B" harfiyle başlamalı veya 10 haneli bir ISBN kodu olmalıdır.</p>`,
-      `<div style="background:#fff7ed;padding:10px;border:1px solid #fed7aa;border-radius:6px;margin-top:8px;">`,
+      `<div style="background:var(--hd-warning-bg);padding:10px;border:1px solid var(--hd-warning-border);border-radius:6px;margin-top:8px;">`,
       `<p style="margin:0;"><strong>⚠️ Not:</strong> Drop Ship faturalarında <strong>IPV/IQV IADE</strong> formatı geçerli değildir. Yalnızca standart ASIN veya ISBN-10 kabul edilir.</p>`,
       `</div>`
     );

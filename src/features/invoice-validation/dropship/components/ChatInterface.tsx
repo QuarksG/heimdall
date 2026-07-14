@@ -104,8 +104,8 @@ const ChatInterface: React.FC = () => {
             style={{
               marginTop: '10px',
               padding: '10px',
-              backgroundColor: '#ffebee',
-              color: '#c62828',
+              backgroundColor: 'var(--hd-danger-bg)',
+              color: 'var(--hd-danger-text)',
               borderRadius: '4px',
               fontSize: '14px',
             }}

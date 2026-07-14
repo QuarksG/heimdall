@@ -102,7 +102,7 @@ export const InvoiceSummary: React.FC<InvoiceSummaryProps> = ({ invoices, totals
           const data = totals[currency];
           return (
             <Col md={6} lg={4} key={currency} className="mb-3">
-              <Card className="h-100 border-0 shadow-sm" style={{ backgroundColor: '#fff' }}>
+              <Card className="h-100 border-0 shadow-sm" style={{ backgroundColor: 'var(--hd-surface)', color: 'var(--hd-text)' }}>
                 <Card.Header className="bg-transparent border-bottom fw-bold text-primary">
                   {currency} Totals
                   <span className="float-end badge bg-secondary">{data.count} Invoices</span>

@@ -1,4 +1,5 @@
 
+
 import DOMPurify from 'dompurify';
 import { XMLToExcelConverter } from '../../../invoice-parsing/utils/xmlParser';
 
@@ -86,34 +87,34 @@ export const validateSupplierParty = (
     const taxOffice = fields.find((f) => f.label.includes('Vergi Dairesi'));
 
     messages.push(
-      `<div style="background:#e8f5e9;padding:12px;border-radius:8px;border-left:5px solid #4caf50;margin:12px 0;">`,
-      `<p style="color:#1b5e20;margin:0;">✅ <strong>Tedarikçi Bilgileri Tam:</strong> ` +
+      `<div style="background:var(--hd-success-bg);padding:12px;border-radius:8px;border-left:5px solid var(--hd-success-border);margin:12px 0;">`,
+      `<p style="color:var(--hd-success-text);margin:0;">✅ <strong>Tedarikçi Bilgileri Tam:</strong> ` +
         `${sanitize(nameField?.value ?? '')} — ${sanitize(idField?.value ?? '')} — ${sanitize(taxOffice?.value ?? '')}</p>`,
       `</div>`
     );
   } else {
     messages.push(
-      `<div style="background:#ffebee;padding:14px;border-radius:8px;border-left:5px solid #d32f2f;margin:12px 0;">`,
-      `<p style="color:#d32f2f;margin:0 0 8px 0;"><strong>⚠️ Tedarikçi (AccountingSupplierParty) Bilgileri Eksik</strong></p>`,
-      `<p style="color:#34495e;margin:0 0 8px 0;">Amazon sistemi faturayı işlemek için aşağıdaki alanların dolu olmasını beklemektedir. Eksik alanlar eşleşme hatasına neden olabilir.</p>`
+      `<div style="background:var(--hd-danger-bg);padding:14px;border-radius:8px;border-left:5px solid var(--hd-danger-border);margin:12px 0;">`,
+      `<p style="color:var(--hd-danger-text);margin:0 0 8px 0;"><strong>⚠️ Tedarikçi (AccountingSupplierParty) Bilgileri Eksik</strong></p>`,
+      `<p style="color:var(--hd-text);margin:0 0 8px 0;">Amazon sistemi faturayı işlemek için aşağıdaki alanların dolu olmasını beklemektedir. Eksik alanlar eşleşme hatasına neden olabilir.</p>`
     );
 
     messages.push(
       `<table style="width:100%;border-collapse:collapse;margin:8px 0;">`,
-      `<thead><tr style="background:#f5f5f5;">`,
-      `<th style="text-align:left;padding:8px;border:1px solid #e0e0e0;">Alan</th>`,
-      `<th style="text-align:left;padding:8px;border:1px solid #e0e0e0;">Durum</th>`,
+      `<thead><tr style="background:var(--hd-surface);">`,
+      `<th style="text-align:left;padding:8px;border:1px solid var(--hd-border);">Alan</th>`,
+      `<th style="text-align:left;padding:8px;border:1px solid var(--hd-border);">Durum</th>`,
       `</tr></thead><tbody>`
     );
 
     for (const f of fields) {
       const icon = f.present ? '✅' : '❌';
-      const color = f.present ? '#1b5e20' : '#d32f2f';
-      const display = f.present ? sanitize(f.value) : '<em style="color:#d32f2f;">Eksik / Boş</em>';
+      const color = f.present ? 'var(--hd-success-text)' : 'var(--hd-danger-text)';
+      const display = f.present ? sanitize(f.value) : '<em style="color:var(--hd-danger-text);">Eksik / Boş</em>';
       messages.push(
         `<tr>`,
-        `<td style="padding:6px 8px;border:1px solid #e0e0e0;">${icon} ${sanitize(f.label)}</td>`,
-        `<td style="padding:6px 8px;border:1px solid #e0e0e0;color:${color};">${display}</td>`,
+        `<td style="padding:6px 8px;border:1px solid var(--hd-border);">${icon} ${sanitize(f.label)}</td>`,
+        `<td style="padding:6px 8px;border:1px solid var(--hd-border);color:${color};">${display}</td>`,
         `</tr>`
       );
     }
@@ -121,9 +122,9 @@ export const validateSupplierParty = (
     messages.push(`</tbody></table>`);
 
     messages.push(
-      `<div style="margin-top:10px;padding:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;">`,
+      `<div style="margin-top:10px;padding:10px;background:var(--hd-surface-2);border:1px solid var(--hd-border);border-radius:6px;">`,
       `<p style="margin:0 0 8px 0;"><strong>📋 Doğru XML örneği:</strong></p>`,
-      `<pre style="margin:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px;overflow:auto;font-size:12px;"><code>&lt;cac:AccountingSupplierParty&gt;
+      `<pre style="margin:0;background:var(--hd-surface);border:1px solid var(--hd-border);border-radius:8px;padding:10px;overflow:auto;font-size:12px;"><code>&lt;cac:AccountingSupplierParty&gt;
   &lt;cac:Party&gt;
     &lt;cac:PartyIdentification&gt;
       &lt;cbc:ID schemeID="VKN"&gt;<strong>1234567890</strong>&lt;/cbc:ID&gt;

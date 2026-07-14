@@ -164,9 +164,9 @@ const PieTooltip: React.FC<{
   return (
     <div
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--hd-surface)',
         borderRadius: 8,
-        border: '1px solid #e5e7eb',
+        border: '1px solid var(--hd-border)',
         padding: '10px 14px'
       }}
     >
@@ -676,9 +676,9 @@ const ReconciliationDashboard: React.FC<DashboardProps> = ({ data }) => {
                   return [formatCurrency(Number(value) || 0, kpis.currency), labels[String(name)] || String(name)];
                 }}
                 contentStyle={{
-                  backgroundColor: '#fff',
+                  backgroundColor: 'var(--hd-surface)',
                   borderRadius: '12px',
-                  border: '1px solid #e5e7eb',
+                  border: '1px solid var(--hd-border)',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
               />
@@ -783,11 +783,11 @@ const ReconciliationDashboard: React.FC<DashboardProps> = ({ data }) => {
               />
               <RechartsTooltip
                 formatter={(value: unknown) => [formatCurrency(Number(value) || 0, kpis.currency), 'Sales Amount']}
-                cursor={{ fill: '#f3f4f6' }}
+                cursor={{ fill: 'var(--hd-surface-2)' }}
                 contentStyle={{
-                  backgroundColor: '#fff',
+                  backgroundColor: 'var(--hd-surface)',
                   borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
+                  border: '1px solid var(--hd-border)',
                   padding: '10px 14px'
                 }}
               />
@@ -834,9 +834,9 @@ const ReconciliationDashboard: React.FC<DashboardProps> = ({ data }) => {
                   return [formatCurrency(Number(value) || 0, kpis.currency), labels[String(name)] || String(name)];
                 }}
                 contentStyle={{
-                  backgroundColor: '#fff',
+                  backgroundColor: 'var(--hd-surface)',
                   borderRadius: '12px',
-                  border: '1px solid #e5e7eb',
+                  border: '1px solid var(--hd-border)',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
               />

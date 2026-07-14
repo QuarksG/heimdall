@@ -97,16 +97,16 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
 
   const styleField = (value: string, isValid: boolean, fieldName: string, isCritical = false): string => {
     if (value === NOT_FOUND) {
-      return `<span style="background-color: #ffcdd2; color: #b71c1c; padding: 1px 3px; border-radius: 2px; font-weight: bold;">[EKSIK - ${DOMPurify.sanitize(
+      return `<span style="background-color: var(--hd-chip-bad-bg); color: var(--hd-chip-bad-text); padding: 1px 3px; border-radius: 2px; font-weight: bold;">[EKSIK - ${DOMPurify.sanitize(
         fieldName
       )}]</span>`;
     }
     if (!isValid) {
-      return `<span style="background-color: #ffcdd2; color: #b71c1c; padding: 1px 3px; border-radius: 2px; ${
+      return `<span style="background-color: var(--hd-chip-bad-bg); color: var(--hd-chip-bad-text); padding: 1px 3px; border-radius: 2px; ${
         isCritical ? 'font-weight: bold;' : ''
       }">${DOMPurify.sanitize(value)}</span>`;
     }
-    return `<span style="background-color: #c8e6c9; color: #1b5e20; padding: 1px 3px; border-radius: 2px;">${DOMPurify.sanitize(
+    return `<span style="background-color: var(--hd-chip-good-bg); color: var(--hd-success-text); padding: 1px 3px; border-radius: 2px;">${DOMPurify.sanitize(
       value
     )}</span>`;
   };
@@ -115,9 +115,9 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
   fieldValidations.vkn = addressFields.vkn === '0680972288';
   if (!fieldValidations.vkn && addressFields.vkn !== NOT_FOUND) {
     addressErrors.push({
-      message: `<li><strong>VKN:</strong> <span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
+      message: `<li><strong>VKN:</strong> <span style="color: var(--hd-danger-text); background-color: var(--hd-chip-bad-bg); padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
         addressFields.vkn
-      )}"</span> yerine <span style="color: green; background-color: #e0ffe0; padding: 2px 4px; border-radius: 3px; font-weight: bold;">"0680972288"</span> olmalıdır.</li>`,
+      )}"</span> yerine <span style="color: var(--hd-success-text); background-color: var(--hd-chip-good-bg); padding: 2px 4px; border-radius: 3px; font-weight: bold;">"0680972288"</span> olmalıdır.</li>`,
     });
   }
 
@@ -140,7 +140,7 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
   if (!hasAllKeywords && addressFields.partyName !== NOT_FOUND) {
     const missingKeywords = requiredKeywords.filter((k) => !variations[k].some((v) => normalizedPartyName.includes(v)));
     addressErrors.push({
-      message: `<li><strong>Şirket Adı:</strong> <span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
+      message: `<li><strong>Şirket Adı:</strong> <span style="color: var(--hd-danger-text); background-color: var(--hd-chip-bad-bg); padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
         addressFields.partyName
       )}"</span> içinde eksik kelimeler: <strong>${missingKeywords.join(', ')}</strong></li>`,
     });
@@ -164,9 +164,9 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
 
   if (missingStreetParts.length > 0 && addressFields.streetName !== NOT_FOUND) {
     addressErrors.push({
-      message: `<li><strong>Adres:</strong> <span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
+      message: `<li><strong>Adres:</strong> <span style="color: var(--hd-danger-text); background-color: var(--hd-chip-bad-bg); padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
         addressFields.streetName
-      )}"</span> içinde şu bilgiler eksik: <strong style="color: darkred;">${missingStreetParts.join(', ')}</strong></li>`,
+      )}"</span> içinde şu bilgiler eksik: <strong style="color: var(--hd-danger-text);">${missingStreetParts.join(', ')}</strong></li>`,
     });
   }
 
@@ -182,10 +182,10 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
   if (!fieldValidations.citySubdivisionName) {
     const citySubdivisionDisplay =
       addressFields.citySubdivisionName === NOT_FOUND
-        ? `<span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">[boş/eksik]</span>`
-        : `<span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(addressFields.citySubdivisionName)}"</span>`;
+        ? `<span style="color: var(--hd-danger-text); background-color: var(--hd-chip-bad-bg); padding: 2px 4px; border-radius: 3px;">[boş/eksik]</span>`
+        : `<span style="color: var(--hd-danger-text); background-color: var(--hd-chip-bad-bg); padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(addressFields.citySubdivisionName)}"</span>`;
     addressErrors.push({
-      message: `<li><strong>İlçe:</strong> ${citySubdivisionDisplay} yerine <span style="color: green; background-color: #e0ffe0; padding: 2px 4px; border-radius: 3px;">"Şişli"</span> olmalıdır.</li>`,
+      message: `<li><strong>İlçe:</strong> ${citySubdivisionDisplay} yerine <span style="color: var(--hd-success-text); background-color: var(--hd-chip-good-bg); padding: 2px 4px; border-radius: 3px;">"Şişli"</span> olmalıdır.</li>`,
     });
   }
 
@@ -196,9 +196,9 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
 
   if (!fieldValidations.cityName && addressFields.cityName !== NOT_FOUND) {
     addressErrors.push({
-      message: `<li><strong>Şehir:</strong> <span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
+      message: `<li><strong>Şehir:</strong> <span style="color: var(--hd-danger-text); background-color: var(--hd-chip-bad-bg); padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
         addressFields.cityName
-      )}"</span> yerine <span style="color: green; background-color: #e0ffe0; padding: 2px 4px; border-radius: 3px;">"İstanbul"</span> olmalıdır.</li>`,
+      )}"</span> yerine <span style="color: var(--hd-success-text); background-color: var(--hd-chip-good-bg); padding: 2px 4px; border-radius: 3px;">"İstanbul"</span> olmalıdır.</li>`,
     });
   }
 
@@ -214,9 +214,9 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
     addressFields.postalZone !== NOT_FOUND
   ) {
     addressErrors.push({
-      message: `<li><strong>Posta Kodu:</strong> <span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
+      message: `<li><strong>Posta Kodu:</strong> <span style="color: var(--hd-danger-text); background-color: var(--hd-chip-bad-bg); padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
         addressFields.postalZone
-      )}"</span> geçerli bir İstanbul posta kodu değil (<span style="color: green; background-color: #e0ffe0; padding: 2px 4px; border-radius: 3px;">34XXX</span> formatında olmalı, örnek: <strong>34394</strong>).</li>`,
+      )}"</span> geçerli bir İstanbul posta kodu değil (<span style="color: var(--hd-success-text); background-color: var(--hd-chip-good-bg); padding: 2px 4px; border-radius: 3px;">34XXX</span> formatında olmalı, örnek: <strong>34394</strong>).</li>`,
     });
   }
 
@@ -228,9 +228,9 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
     addressFields.countryCode !== NOT_FOUND
   ) {
     addressErrors.push({
-      message: `<li><strong>Ülke Kodu:</strong> <span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
+      message: `<li><strong>Ülke Kodu:</strong> <span style="color: var(--hd-danger-text); background-color: var(--hd-chip-bad-bg); padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
         addressFields.countryCode
-      )}"</span> yerine <span style="color: green; background-color: #e0ffe0; padding: 2px 4px; border-radius: 3px; font-weight: bold;">"TR"</span> olmalıdır.</li>`,
+      )}"</span> yerine <span style="color: var(--hd-success-text); background-color: var(--hd-chip-good-bg); padding: 2px 4px; border-radius: 3px; font-weight: bold;">"TR"</span> olmalıdır.</li>`,
     });
   }
 
@@ -243,9 +243,9 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
 
   if (!fieldValidations.countryName && normalizedCountryName !== 'BULUNAMADI' && addressFields.countryName !== NOT_FOUND) {
     addressErrors.push({
-      message: `<li><strong>Ülke Adı:</strong> <span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
+      message: `<li><strong>Ülke Adı:</strong> <span style="color: var(--hd-danger-text); background-color: var(--hd-chip-bad-bg); padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
         addressFields.countryName
-      )}"</span> yerine <span style="color: green; background-color: #e0ffe0; padding: 2px 4px; border-radius: 3px;">"Türkiye"</span> olmalıdır.</li>`,
+      )}"</span> yerine <span style="color: var(--hd-success-text); background-color: var(--hd-chip-good-bg); padding: 2px 4px; border-radius: 3px;">"Türkiye"</span> olmalıdır.</li>`,
     });
   }
 
@@ -258,9 +258,9 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
 
   if (!fieldValidations.taxSchemeName && addressFields.taxSchemeName !== NOT_FOUND) {
     addressErrors.push({
-      message: `<li><strong>Vergi Dairesi:</strong> <span style="color: red; background-color: #ffe0e0; padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
+      message: `<li><strong>Vergi Dairesi:</strong> <span style="color: var(--hd-danger-text); background-color: var(--hd-chip-bad-bg); padding: 2px 4px; border-radius: 3px;">"${DOMPurify.sanitize(
         addressFields.taxSchemeName
-      )}"</span> içinde <span style="color: green; background-color: #e0ffe0; padding: 2px 4px; border-radius: 3px;">"Zincirlikuyu"</span> bulunmalıdır.</li>`,
+      )}"</span> içinde <span style="color: var(--hd-success-text); background-color: var(--hd-chip-good-bg); padding: 2px 4px; border-radius: 3px;">"Zincirlikuyu"</span> bulunmalıdır.</li>`,
     });
   }
 
@@ -292,47 +292,47 @@ export const validateAmazonAddress = (xmlDoc: Document, converter: XMLToExcelCon
 &lt;/cac:AccountingCustomerParty&gt;`;
 
     errors.push(
-      '<h3 style="color: #d32f2f;">❌ Amazon Müşteri (AccountingCustomerParty) Bilgileri Hatalı:</h3>',
+      '<h3 style="color: var(--hd-danger-text);">❌ Amazon Müşteri (AccountingCustomerParty) Bilgileri Hatalı:</h3>',
       "<p>Faturanızda Amazon Turkey'in müşteri bilgileri yanlış girilmiştir. Aşağıdaki düzeltmeleri yapmanız gerekmektedir:</p>",
-      '<div style="background-color: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid #d32f2f;">',
+      '<div style="background-color: var(--hd-danger-bg); padding: 15px; border-radius: 5px; border-left: 4px solid var(--hd-danger-border);">',
       '<ul style="margin: 0;">',
       ...addressErrors.map((e) => e.message),
       '</ul>',
       '</div>',
-      '<h4 style="color: #d32f2f; margin-top: 20px;">📋 Sizin XML\'inizdeki mevcut bilgiler:</h4>',
-      '<div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; border: 1px solid #e0e0e0;">',
+      '<h4 style="color: var(--hd-danger-text); margin-top: 20px;">📋 Sizin XML\'inizdeki mevcut bilgiler:</h4>',
+      '<div style="background-color: var(--hd-surface-2); padding: 10px; border-radius: 5px; border: 1px solid var(--hd-border);">',
       `<pre style="margin: 0; font-size: 12px;"><code>${actualXML}</code></pre>`,
       '</div>',
-      '<h4 style="color: #388e3c; margin-top: 20px;">✅ Doğru Amazon müşteri bilgileri aşağıdaki gibi olmalıdır:</h4>',
-      '<div style="background-color: #e8f5e9; padding: 10px; border-radius: 5px; border: 1px solid #81c784;">',
+      '<h4 style="color: var(--hd-success-text); margin-top: 20px;">✅ Doğru Amazon müşteri bilgileri aşağıdaki gibi olmalıdır:</h4>',
+      '<div style="background-color: var(--hd-success-bg); padding: 10px; border-radius: 5px; border: 1px solid var(--hd-success-border);">',
       `<pre style="margin: 0; font-size: 12px;"><code>&lt;cac:AccountingCustomerParty&gt;
   &lt;cac:Party&gt;
     &lt;cac:PartyIdentification&gt;
-      &lt;cbc:ID schemeID="VKN"&gt;<span style="background-color: #66bb6a; color: white; padding: 1px 3px; border-radius: 2px; font-weight: bold;">0680972288</span>&lt;/cbc:ID&gt;
+      &lt;cbc:ID schemeID="VKN"&gt;<span style="background-color: var(--hd-chip-good-bg); color: var(--hd-chip-good-text); padding: 1px 3px; border-radius: 2px; font-weight: bold;">0680972288</span>&lt;/cbc:ID&gt;
     &lt;/cac:PartyIdentification&gt;
     &lt;cac:PartyName&gt;
-      &lt;cbc:Name&gt;<span style="background-color: #a5d6a7;">AMAZON TURKEY PERAKENDE HİZMETLERİ LİMİTED ŞİRKETİ</span>&lt;/cbc:Name&gt;
+      &lt;cbc:Name&gt;<span style="background-color: var(--hd-chip-good-bg);">AMAZON TURKEY PERAKENDE HİZMETLERİ LİMİTED ŞİRKETİ</span>&lt;/cbc:Name&gt;
     &lt;/cac:PartyName&gt;
     &lt;cac:PostalAddress&gt;
-      &lt;cbc:StreetName&gt;<span style="background-color: #a5d6a7;">Esentepe Mahallesi Bahar Sk. No: 13/52</span>&lt;/cbc:StreetName&gt;
-      &lt;cbc:CitySubdivisionName&gt;<span style="background-color: #a5d6a7;">Şişli</span>&lt;/cbc:CitySubdivisionName&gt;
-      &lt;cbc:CityName&gt;<span style="background-color: #a5d6a7;">İstanbul</span>&lt;/cbc:CityName&gt;
-      &lt;cbc:PostalZone&gt;<span style="background-color: #66bb6a; color: white; padding: 1px 3px; border-radius: 2px; font-weight: bold;">34394</span>&lt;/cbc:PostalZone&gt;
+      &lt;cbc:StreetName&gt;<span style="background-color: var(--hd-chip-good-bg);">Esentepe Mahallesi Bahar Sk. No: 13/52</span>&lt;/cbc:StreetName&gt;
+      &lt;cbc:CitySubdivisionName&gt;<span style="background-color: var(--hd-chip-good-bg);">Şişli</span>&lt;/cbc:CitySubdivisionName&gt;
+      &lt;cbc:CityName&gt;<span style="background-color: var(--hd-chip-good-bg);">İstanbul</span>&lt;/cbc:CityName&gt;
+      &lt;cbc:PostalZone&gt;<span style="background-color: var(--hd-chip-good-bg); color: var(--hd-chip-good-text); padding: 1px 3px; border-radius: 2px; font-weight: bold;">34394</span>&lt;/cbc:PostalZone&gt;
       &lt;cac:Country&gt;
-        &lt;cbc:IdentificationCode&gt;<span style="background-color: #66bb6a; color: white; padding: 1px 3px; border-radius: 2px; font-weight: bold;">TR</span>&lt;/cbc:IdentificationCode&gt;
-        &lt;cbc:Name&gt;<span style="background-color: #a5d6a7;">Türkiye</span>&lt;/cbc:Name&gt;
+        &lt;cbc:IdentificationCode&gt;<span style="background-color: var(--hd-chip-good-bg); color: var(--hd-chip-good-text); padding: 1px 3px; border-radius: 2px; font-weight: bold;">TR</span>&lt;/cbc:IdentificationCode&gt;
+        &lt;cbc:Name&gt;<span style="background-color: var(--hd-chip-good-bg);">Türkiye</span>&lt;/cbc:Name&gt;
       &lt;/cac:Country&gt;
     &lt;/cac:PostalAddress&gt;
     &lt;cac:PartyTaxScheme&gt;
       &lt;cac:TaxScheme&gt;
-        &lt;cbc:Name&gt;<span style="background-color: #a5d6a7;">Zincirlikuyu</span>&lt;/cbc:Name&gt;
+        &lt;cbc:Name&gt;<span style="background-color: var(--hd-chip-good-bg);">Zincirlikuyu</span>&lt;/cbc:Name&gt;
       &lt;/cac:TaxScheme&gt;
     &lt;/cac:PartyTaxScheme&gt;
   &lt;/cac:Party&gt;
 &lt;/cac:AccountingCustomerParty&gt;</code></pre>`,
       '</div>',
-      '<div style="margin-top: 15px; padding: 10px; background-color: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107;">',
-      '<p style="margin: 0;"><strong>⚠️ Önemli:</strong> Sarı işaretli alanlar (<span style="background-color: #66bb6a; color: white; padding: 1px 3px; border-radius: 2px;">VKN</span>, <span style="background-color: #66bb6a; color: white; padding: 1px 3px; border-radius: 2px;">Posta Kodu</span>, <span style="background-color: #66bb6a; color: white; padding: 1px 3px; border-radius: 2px;">Ülke Kodu</span>) mutlaka birebir aynı olmalıdır.</p>',
+      '<div style="margin-top: 15px; padding: 10px; background-color: var(--hd-warning-bg); border-radius: 5px; border-left: 4px solid var(--hd-warning-border);">',
+      '<p style="margin: 0;"><strong>⚠️ Önemli:</strong> Sarı işaretli alanlar (<span style="background-color: var(--hd-chip-good-bg); color: var(--hd-chip-good-text); padding: 1px 3px; border-radius: 2px;">VKN</span>, <span style="background-color: var(--hd-chip-good-bg); color: var(--hd-chip-good-text); padding: 1px 3px; border-radius: 2px;">Posta Kodu</span>, <span style="background-color: var(--hd-chip-good-bg); color: var(--hd-chip-good-text); padding: 1px 3px; border-radius: 2px;">Ülke Kodu</span>) mutlaka birebir aynı olmalıdır.</p>',
       '</div>'
     );
   }
