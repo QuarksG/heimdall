@@ -15,6 +15,8 @@ language; every claim points to a specific file in the repository.
 | 05 | [Build, Deploy & Operations](./05-operations.md) | Toolchain, CI/CD path, observability, runbook gaps. |
 | 06 | [Risks & Roadmap](./06-risks-and-roadmap.md) | Known defects, technical debt, the path to GA. |
 | 07 | [Architecture & User Journey](./07-architecture-and-journey.md) | DDD-aligned metro map + reviewable DynamoDB schema. |
+| 08 | [Payment Reconciliation — Technical](./08-payment-reconciliation-technical.md) | Implemented TR OFA parsing, classification, balancing, analytics, matching, export, and risks. |
+| 09 | [Payment Reconciliation — Engineering Deep Dive](./09-payment-reconciliation-engineering-deep-dive.md) | Full-stack implementation paper: module topology, function contracts, complexity, invariants, defects, extension/test recipes. |
 
 ## How to read this
 
