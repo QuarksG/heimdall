@@ -943,3 +943,184 @@
     font-size: 0.8rem;
   }
 }
+
+/* ============================================================
+   === DARK MODE ===
+   Activated when <html data-bs-theme="dark">.
+   Shared dark palette:
+     Page background:        #17120f
+     Card / panel surface:   #1e1a18
+     Elevated surface:       #262019
+     Subtle border:          rgba(255, 255, 255, 0.10)
+     Stronger border:        rgba(255, 255, 255, 0.16)
+     Primary text:           #e8e6e3
+     Secondary / muted text: #9ca3af
+     Success bg/text:        rgba(16,185,129,0.15) / #6ee7b7
+     Error bg/text:          rgba(239,68,68,0.15) / #fca5a5
+     Warning bg/text:        rgba(245,158,11,0.15) / #fcd34d
+   Solid colored buttons (blue/green gradients) are kept as-is.
+   ============================================================ */
+
+/* --- 1. Remap the gray ramp so light grays become dark surfaces
+       and dark grays become light text --- */
+[data-bs-theme="dark"] {
+  --color-gray-50: #1e1a18;
+  --color-gray-100: #262019;
+  --color-gray-200: rgba(255, 255, 255, 0.10);
+  --color-gray-300: rgba(255, 255, 255, 0.16);
+  --color-gray-400: #6b7280;
+  --color-gray-500: #9ca3af;
+  --color-gray-600: #b0b6be;
+  --color-gray-700: #d1d5db;
+  --color-gray-800: #e5e7eb;
+  --color-gray-900: #f3f4f6;
+}
+
+/* --- 2. Override rules using LITERAL light values (white surfaces
+       and white gradient stops) --- */
+
+/* Page-level container background */
+[data-bs-theme="dark"] .sap-container {
+  background: linear-gradient(135deg, #17120f 0%, #1e1a18 100%);
+}
+
+/* Empty dashboard state */
+[data-bs-theme="dark"] .dashboard-empty {
+  background: #1e1a18;
+}
+
+/* Company header gradient (was white -> gray-50) */
+[data-bs-theme="dark"] .company-header {
+  background: linear-gradient(135deg, #1e1a18 0%, #262019 100%);
+}
+
+/* Stat / chart / summary / SAP cards */
+[data-bs-theme="dark"] .stat-card,
+[data-bs-theme="dark"] .chart-card,
+[data-bs-theme="dark"] .sap-card {
+  background: #1e1a18;
+}
+
+/* Summary card gradient (was white -> gray-50) */
+[data-bs-theme="dark"] .summary-card {
+  background: linear-gradient(135deg, #1e1a18 0%, #262019 100%);
+}
+
+/* Stats footer gradient (was gray-50 -> white) */
+[data-bs-theme="dark"] .stats-footer {
+  background: linear-gradient(135deg, #262019 0%, #1e1a18 100%);
+}
+
+/* File info display hover (was background: white) */
+[data-bs-theme="dark"] .file-info-display {
+  background: #262019;
+}
+
+[data-bs-theme="dark"] .file-info-display:hover {
+  background: #1e1a18;
+}
+
+/* File input surfaces */
+[data-bs-theme="dark"] .sap-file-input {
+  background: #262019;
+}
+
+[data-bs-theme="dark"] .sap-file-input:hover,
+[data-bs-theme="dark"] .sap-file-input:focus {
+  background: #1e1a18;
+}
+
+/* Filter input (was background: white) */
+[data-bs-theme="dark"] .sap-filter-input {
+  background: #262019;
+  color: #e8e6e3;
+}
+
+/* Responsive mobile stat-item (was background: white) */
+[data-bs-theme="dark"] .stat-item {
+  background: #262019;
+}
+
+/* --- Table surfaces --- */
+[data-bs-theme="dark"] .sap-table-wrapper {
+  background: #1e1a18;
+}
+
+/* Table header gradient (was gray-100 -> gray-50) */
+[data-bs-theme="dark"] .sap-table th {
+  background: linear-gradient(180deg, #262019 0%, #1e1a18 100%);
+  color: #e8e6e3;
+}
+
+/* Table cells (was background: white) */
+[data-bs-theme="dark"] .sap-table td {
+  background: #1e1a18;
+  color: #e8e6e3;
+}
+
+/* Table row hover (was gray-50 -> white) */
+[data-bs-theme="dark"] .sap-table tr:hover td {
+  background: linear-gradient(90deg, #262019 0%, #1e1a18 100%);
+}
+
+/* --- 3. Success / error banners and messages -> translucent dark tints --- */
+[data-bs-theme="dark"] .parse-success-banner {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+[data-bs-theme="dark"] .parse-success-title {
+  color: #6ee7b7;
+}
+
+[data-bs-theme="dark"] .parse-success-detail {
+  color: #6ee7b7;
+}
+
+[data-bs-theme="dark"] .parse-error-banner {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-bs-theme="dark"] .parse-error-title {
+  color: #fca5a5;
+}
+
+[data-bs-theme="dark"] .parse-error-detail {
+  color: #fca5a5;
+}
+
+[data-bs-theme="dark"] .sap-message-success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+[data-bs-theme="dark"] .sap-message-error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Havale (warning) rows -> warning tint */
+[data-bs-theme="dark"] .havale-row td {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fcd34d;
+}
+
+[data-bs-theme="dark"] .havale-row:hover td {
+  background: rgba(245, 158, 11, 0.22) !important;
+}
+
+/* --- 4. Scrollbar colors use dark border / muted values --- */
+[data-bs-theme="dark"] .sap-table-wrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .sap-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+[data-bs-theme="dark"] .sap-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

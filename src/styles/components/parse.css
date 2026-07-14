@@ -209,3 +209,84 @@
   color: #444;
   cursor: pointer;
 }
+
+/* ==========================================================================
+   Dark mode
+   Activated when the root <html> element has [data-bs-theme="dark"].
+   Shared dark palette (consistent across the whole app):
+     - Page/panel background:            #17120f
+     - Card / table surface:             #1e1a18
+     - Elevated surface (header/even):   #262019
+     - Subtle border:                    rgba(255, 255, 255, 0.10)
+     - Stronger border:                  rgba(255, 255, 255, 0.16)
+     - Primary text:                     #e8e6e3
+     - Muted text:                       #9ca3af
+   Blue upload/download button gradients are intentionally kept as-is.
+   ========================================================================== */
+
+[data-bs-theme="dark"] .invoice-parse #searchBox {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #262019;
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .invoice-parse .file-status {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .invoice-parse .other-controls {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .invoice-parse #itemsPerPage {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #262019;
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .invoice-parse label {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .invoice-parse #dataframe {
+  background: #1e1a18;
+}
+
+[data-bs-theme="dark"] .invoice-parse th,
+[data-bs-theme="dark"] .invoice-parse td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+/* .invoice-parse th background (#32404D) is already dark; keep it, ensure text stays white */
+[data-bs-theme="dark"] .invoice-parse th {
+  color: #ffffff;
+}
+
+[data-bs-theme="dark"] .invoice-parse td {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .invoice-parse tr:nth-child(even) {
+  background-color: #262019;
+}
+
+[data-bs-theme="dark"] .invoice-parse tr:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .invoice-parse .invoiceSidebar {
+  background-color: #1e1a18;
+  border-left: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .invoice-parse .invoiceSidebar h3 {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .invoice-parse .invoiceSidebar h4 {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .invoice-parse .invoiceSidebar label {
+  color: #cbd5e1;
+}

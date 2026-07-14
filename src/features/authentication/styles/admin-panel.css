@@ -331,3 +331,149 @@
     min-width: unset;
   }
 }
+
+/* ============================================================
+   DARK MODE
+   Activated when <html data-bs-theme="dark">.
+   Shared palette:
+     page #17120f · surface #1e1a18 · elevated #262019
+     subtle border rgba(255,255,255,0.10) · strong border rgba(255,255,255,0.16)
+     text #e8e6e3 · muted #9ca3af
+     approved/success bg rgba(16,185,129,0.15)/text #6ee7b7
+     rejected/error    bg rgba(239,68,68,0.15)/text #fca5a5
+     pending/warning   bg rgba(245,158,11,0.15)/text #fcd34d
+     info tint bg rgba(59,130,246,0.15)
+   Solid accent action buttons (approve/reject/revoke) left as-is.
+   ============================================================ */
+
+/* Header text */
+[data-bs-theme="dark"] .ap-header h2 {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ap-subtitle {
+  color: #9ca3af;
+}
+
+/* Tabs */
+[data-bs-theme="dark"] .ap-tab {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #262019;
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ap-tab:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+[data-bs-theme="dark"] .ap-tab--active {
+  border-color: #6366f1;
+  background: rgba(59, 130, 246, 0.15);
+  color: #a5b4fc;
+}
+
+[data-bs-theme="dark"] .ap-tab-count {
+  background: #262019;
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ap-tab--active .ap-tab-count {
+  background: rgba(59, 130, 246, 0.15);
+  color: #a5b4fc;
+}
+
+[data-bs-theme="dark"] .ap-refresh-btn {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #262019;
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ap-refresh-btn:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Alert */
+[data-bs-theme="dark"] .ap-alert--error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Loading / empty / spinner */
+[data-bs-theme="dark"] .ap-loading,
+[data-bs-theme="dark"] .ap-empty {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .ap-spinner {
+  border-color: rgba(255, 255, 255, 0.16);
+  border-top-color: #a5b4fc;
+}
+
+/* Cards (surface) */
+[data-bs-theme="dark"] .ap-card {
+  background: #1e1a18;
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Card header (elevated) */
+[data-bs-theme="dark"] .ap-card-header {
+  background: #262019;
+  border-bottom-color: rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .ap-card-name {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ap-card-email {
+  color: #9ca3af;
+}
+
+/* Status badges -> translucent tints */
+[data-bs-theme="dark"] .ap-badge--pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+}
+
+[data-bs-theme="dark"] .ap-badge--approved {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+}
+
+[data-bs-theme="dark"] .ap-badge--rejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+/* Card body text */
+[data-bs-theme="dark"] .ap-card-label {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .ap-card-value {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ap-card-justification {
+  color: #9ca3af;
+}
+
+/* Tags */
+[data-bs-theme="dark"] .ap-country-tag {
+  background: rgba(59, 130, 246, 0.15);
+  color: #a5b4fc;
+}
+
+[data-bs-theme="dark"] .ap-feature-tag {
+  background: #262019;
+  color: #e8e6e3;
+}
+
+/* Card actions footer (elevated) */
+[data-bs-theme="dark"] .ap-card-actions {
+  border-top-color: rgba(255, 255, 255, 0.10);
+  background: #262019;
+}

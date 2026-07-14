@@ -158,3 +158,94 @@
   margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
+
+/* ==========================================================================
+   Dark Mode
+   Activated when the root <html> element has [data-bs-theme="dark"].
+   Shared palette (consistent across the whole app):
+     - Page background:        #17120f
+     - Card / panel surface:   #1e1a18
+     - Elevated surface:       #262019
+     - Subtle border:          rgba(255, 255, 255, 0.10)
+     - Stronger border:        rgba(255, 255, 255, 0.16)
+     - Primary text/headings:  #e8e6e3
+     - Secondary/muted text:   #9ca3af
+     - Success tint bg/text:   rgba(16,185,129,0.15) / #6ee7b7
+     - Error tint bg/text:     rgba(239,68,68,0.15) / #fca5a5
+     - Info/active tint bg:    rgba(59,130,246,0.15)
+     - Accent blue:            #3b82f6 / #0d6efd
+   ========================================================================== */
+
+/* Page Layout */
+[data-bs-theme="dark"] .invoice-verify-page {
+  background-color: #17120f;
+}
+
+[data-bs-theme="dark"] .page-header h3 {
+  color: #e8e6e3;
+}
+
+/* Dropzone Styles */
+[data-bs-theme="dark"] .dropzone-area {
+  background-color: #1e1a18;
+  color: #9ca3af;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+[data-bs-theme="dark"] .dropzone-area:hover {
+  border-color: #3b82f6;
+}
+
+[data-bs-theme="dark"] .dropzone-area.active {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+[data-bs-theme="dark"] .dropzone-area.accept {
+  border-color: #10b981;
+  background-color: rgba(16, 185, 129, 0.15);
+}
+
+[data-bs-theme="dark"] .dropzone-area.reject {
+  border-color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+[data-bs-theme="dark"] .dropzone-text p {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .dropzone-text span {
+  color: #0d6efd; /* Keep accent blue */
+}
+
+[data-bs-theme="dark"] .dropzone-hint {
+  color: #9ca3af;
+}
+
+/* Table Styles */
+[data-bs-theme="dark"] .table-container {
+  border-color: rgba(255, 255, 255, 0.10);
+  background: #1e1a18;
+}
+
+[data-bs-theme="dark"] .sticky-header th {
+  background-color: #262019 !important; /* Elevated surface for consistency */
+  color: #e8e6e3;
+}
+
+/* Summary Cards (InvoiceSummary) */
+[data-bs-theme="dark"] .table-summary {
+  background-color: #1e1a18;
+}
+
+/* Empty State Cards */
+[data-bs-theme="dark"] .info-card {
+  background-color: #1e1a18;
+}
+
+/* Ensure Bootstrap table + card text stays readable */
+[data-bs-theme="dark"] .table-container td,
+[data-bs-theme="dark"] .info-card {
+  color: #e8e6e3;
+}
