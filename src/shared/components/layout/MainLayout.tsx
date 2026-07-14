@@ -8,10 +8,10 @@ const MainLayout: React.FC = () => {
       <Sidebar />
       <main 
         id="content"
+        className="app-content"
         style={{
           flex: 1,
           marginLeft: '256px',
-          backgroundColor: '#ffffff',
           height: '100%',
           overflowY: 'auto',
           overflowX: 'hidden',

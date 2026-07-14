@@ -36,10 +36,19 @@
 /* --- User Section --- */
 .user-section {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 15px;
   margin-bottom: 5px;
   transition: opacity 0.3s;
+  flex-shrink: 0;
+}
+
+/* Left column: avatar with the theme toggle stacked beneath it */
+.user-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   flex-shrink: 0;
 }
 
@@ -76,6 +85,32 @@
   font-weight: 600;
   color: #1a1a1a;
   white-space: nowrap;
+}
+
+/* Dark mode toggle (stacked under the avatar, left column) */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.45);
+  color: #444;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.75);
+  color: #000;
+}
+
+.sidebar.folded .theme-toggle .theme-toggle-label {
+  display: none;
 }
 
 .sidebar-separator {
@@ -193,4 +228,78 @@
 .lock-icon {
   font-size: 14px;
   opacity: 0.5;
+}
+
+/* ─────────────────────────────────────────────
+   DARK MODE OVERRIDES
+   Activated by [data-bs-theme="dark"] on <html>
+   ───────────────────────────────────────────── */
+[data-bs-theme="dark"] .sidebar {
+  background-color: #1f1b1c;
+  color: #cfc5c5;
+}
+
+[data-bs-theme="dark"] .sidebar .menu-btn {
+  color: #e6e6e6;
+}
+
+[data-bs-theme="dark"] .user-name {
+  color: #f5f5f5;
+}
+
+[data-bs-theme="dark"] .user-title,
+[data-bs-theme="dark"] .group-title {
+  color: #9a8f8f;
+}
+
+[data-bs-theme="dark"] .sidebar-separator {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-bs-theme="dark"] .sidebar-nav ul li a,
+[data-bs-theme="dark"] .sidebar-bottom ul li a {
+  color: #b8adad;
+}
+
+[data-bs-theme="dark"] .sidebar-nav ul li a:hover,
+[data-bs-theme="dark"] .sidebar-bottom ul li a:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .sidebar-nav ul li.active a,
+[data-bs-theme="dark"] .sidebar-bottom ul li.active a {
+  background-color: #3a3234;
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+[data-bs-theme="dark"] .theme-toggle {
+  border-color: rgba(255, 255, 255, 0.18);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #d8cccc;
+}
+
+[data-bs-theme="dark"] .theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+[data-bs-theme="dark"] .user-img {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-bs-theme="dark"] .lock-icon {
+  opacity: 0.6;
+}
+
+/* Main content area (rendered alongside the sidebar) */
+.app-content {
+  background-color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+[data-bs-theme="dark"] .app-content {
+  background-color: #17120f;
+  color: #e6e6e6;
 }

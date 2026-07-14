@@ -28,19 +28,19 @@ const is220 = (m: string) => m === '220';
 const is310 = (m: string) => m === '310';
 
 const musterinoPlacementHtml = `
-  <div style="margin-top: 10px; padding: 10px; background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px;">
+  <div style="margin-top: 10px; padding: 10px; background-color: var(--hd-warning-bg); border: 1px solid var(--hd-warning-border); border-radius: 6px;">
     <p style="margin: 0 0 8px 0;"><strong>✅ MUSTERINO alanı XML'de aşağıdaki şekilde yer almalıdır:</strong></p>
-    <pre style="margin: 0; background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:10px; overflow:auto;"><code>&lt;cac:PartyIdentification&gt;
+    <pre style="margin: 0; background:var(--hd-surface); border:1px solid var(--hd-border); border-radius:8px; padding:10px; overflow:auto;"><code>&lt;cac:PartyIdentification&gt;
   &lt;cbc:ID schemeID="MUSTERINO"&gt;210&lt;/cbc:ID&gt;
 &lt;/cac:PartyIdentification&gt;</code></pre>
-    <p style="margin: 8px 0 0 0; color:#6b7280;">
+    <p style="margin: 8px 0 0 0; color:var(--hd-text-muted);">
       Not: Amazon'dan aldığınız yönergeye göre fatura MUSTERINO değeri <strong>210 / 220 / 310</strong> olmalıdır.
     </p>
   </div>
 `;
 
 const musterinoGuideHtml = `
-  <div style="margin-top: 10px; padding: 10px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+  <div style="margin-top: 10px; padding: 10px; background-color: var(--hd-surface-2); border: 1px solid var(--hd-border); border-radius: 6px;">
     <p style="margin: 0 0 8px 0;">
       <strong>📌 MUSTERINO nedir?</strong>
       MUSTERINO, Amazon'un farklı birimleri için kullandığı özel bir müşteri kodudur. Bu kod, faturanızın doğru ekibe yönlendirilmesini sağlar.
@@ -51,7 +51,7 @@ const musterinoGuideHtml = `
       <li style="margin: 6px 0;">
         <strong>210 (PO / Purchase Order)</strong>
         <br />
-        <span style="color:#374151;">
+        <span style="color:var(--hd-text);">
           <strong>PO (Toptan Satın Alma Siparişi)</strong> bazlı faturalarda kullanılır.
           Yani tedarikçi, Amazon Retail'den aldığı <strong>PO numarasını</strong> toptan <strong>satış</strong> faturasına giriyorsa MUSTERINO değeri <strong>210</strong> olmalıdır.
           <br /><br />
@@ -64,7 +64,7 @@ const musterinoGuideHtml = `
       <li style="margin: 6px 0;">
         <strong>220 (AR Department / Accounts Receivable)</strong>
         <br />
-        <span style="color:#374151;">
+        <span style="color:var(--hd-text);">
           <strong>AR (Accounts Receivable)</strong> süreçleri için kullanılır.
           Genellikle Amazon'un <strong>"C" ile başlayan ticari iş birliği faturaları</strong> bu kapsamdadır.
           <br /><br />
@@ -76,14 +76,14 @@ const musterinoGuideHtml = `
       <li style="margin: 6px 0;">
         <strong>310 (Amazon DF / Drop Ship)</strong>
         <br />
-        <span style="color:#374151;">
+        <span style="color:var(--hd-text);">
           <strong>Drop Ship (DF)</strong> faturaları için kullanılır.
           Bu tür faturalar genellikle <strong>Drop Ship ID</strong> üzerinden ilerler ve Amazon'un ilgili departman süreçlerine göre değerlendirilir.
         </span>
       </li>
     </ul>
 
-    <p style="margin: 10px 0 0 0; color:#6b7280;">
+    <p style="margin: 10px 0 0 0; color:var(--hd-text-muted);">
       Not: Amazon'da sürecin hangi tür faturayı gerektirdiğinden emin değilseniz, faturanın dayanağını kontrol edin:
       <strong>PO</strong> mu, <strong>AR süreci</strong> mi, yoksa <strong>DF (Drop Ship)</strong> mi?
       MUSTERINO'yu buna göre seçin.
@@ -127,7 +127,7 @@ export const validateInvoiceHeader = (xmlDoc: Document, converter: XMLToExcelCon
 
   if (musterino === NOT_FOUND) {
     messages.push(
-      `<p style="margin-top: 12px; color:#d32f2f;"><strong>⚠️ MUSTERINO (Müşteri No) alanı bulunamadı veya boş.</strong></p>`
+      `<p style="margin-top: 12px; color:var(--hd-danger-text);"><strong>⚠️ MUSTERINO (Müşteri No) alanı bulunamadı veya boş.</strong></p>`
     );
     messages.push(
       `<p style="margin-top: 6px;">
@@ -155,14 +155,14 @@ export const validateInvoiceHeader = (xmlDoc: Document, converter: XMLToExcelCon
       `<p style="margin-top: 6px;">✅ MUSTERINO değeri <strong>220</strong>. Bu değer, <strong>AR (Accounts Receivable)</strong> departmanı kapsamındaki süreçler için uygundur (ör. Amazon'un <strong>ticari iş birliği</strong> senaryolarına bağlı karşı iadeler).</p>`
     );
     messages.push(
-      `<p style="margin-top: 6px; color:#6b7280;">Not: Faturanızı <strong>PO/satış</strong> veya <strong>PPV-RI</strong> / <strong>PQV-RI</strong> karşı iade kapsamında düzenliyorsanız MUSTERINO'yu <strong>210</strong> olarak güncellemeniz gerekir.</p>`
+      `<p style="margin-top: 6px; color:var(--hd-text-muted);">Not: Faturanızı <strong>PO/satış</strong> veya <strong>PPV-RI</strong> / <strong>PQV-RI</strong> karşı iade kapsamında düzenliyorsanız MUSTERINO'yu <strong>210</strong> olarak güncellemeniz gerekir.</p>`
     );
   } else if (resolved && is310(resolved)) {
     messages.push(
       `<p style="margin-top: 6px;">✅ MUSTERINO değeri <strong>310</strong>. Bu değer, <strong>Amazon DF</strong> faturaları için uygundur.</p>`
     );
   } else {
-    messages.push(`<p style="margin-top: 6px; color:#d32f2f;"><strong>⚠️ MUSTERINO değeri beklenen değerlerden farklı.</strong></p>`);
+    messages.push(`<p style="margin-top: 6px; color:var(--hd-danger-text);"><strong>⚠️ MUSTERINO değeri beklenen değerlerden farklı.</strong></p>`);
     messages.push(
       `<p style="margin-top: 6px;">Lütfen senaryonuza uygun olacak şekilde MUSTERINO alanını güncelleyerek faturayı tekrar yükleyin.</p>`
     );

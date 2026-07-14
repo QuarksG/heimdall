@@ -930,3 +930,97 @@
     padding: 12px;
   }
 }
+
+/* ============================================================
+   DARK MODE
+   Activated when <html data-bs-theme="dark">.
+   This screen is already dark by default; here we remap its
+   design tokens to the SHARED app dark palette so every surface
+   matches the rest of the app:
+     page #17120f · surface #1e1a18 · elevated #262019
+     subtle border rgba(255,255,255,0.10) · strong border rgba(255,255,255,0.16)
+     text #e8e6e3 · muted #9ca3af
+     success bg rgba(16,185,129,0.15)/text #6ee7b7/border rgba(16,185,129,0.4)
+     error   bg rgba(239,68,68,0.15)/text #fca5a5/border rgba(239,68,68,0.4)
+     warning text #fcd34d · info bg rgba(59,130,246,0.15)
+   The gold accent (--auth-accent) is kept; it reads fine on dark.
+   ============================================================ */
+
+/* Token remap — cascades to every rule using these variables */
+[data-bs-theme="dark"] {
+  --auth-bg-primary: #17120f;
+  --auth-bg-glow: radial-gradient(ellipse at 30% 20%, #1e1a18 0%, #17120f 60%);
+  --auth-card-bg: #1e1a18;
+  --auth-card-border: rgba(255, 255, 255, 0.10);
+  --auth-card-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 120px rgba(0, 0, 0, 0.2);
+  --auth-text-primary: #e8e6e3;
+  --auth-text-secondary: #9ca3af;
+  --auth-text-muted: #9ca3af;
+  --auth-input-bg: #262019;
+  --auth-input-border: rgba(255, 255, 255, 0.16);
+  --auth-input-text: #e8e6e3;
+  --auth-input-placeholder: #9ca3af;
+  --auth-error: #fca5a5;
+  --auth-error-bg: rgba(239, 68, 68, 0.15);
+  --auth-success: #6ee7b7;
+  --auth-success-bg: rgba(16, 185, 129, 0.15);
+  --auth-warning: #fcd34d;
+}
+
+/* Alerts -> shared translucent tints + borders */
+[data-bs-theme="dark"] .auth-alert--error {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+[data-bs-theme="dark"] .auth-alert--success {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+
+[data-bs-theme="dark"] .auth-alert--info {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Terms panel surfaces -> shared surface/elevated tones */
+[data-bs-theme="dark"] .terms-card {
+  border-color: rgba(255, 255, 255, 0.10);
+  background: #1e1a18;
+}
+
+[data-bs-theme="dark"] .terms-badge {
+  border-color: rgba(255, 255, 255, 0.10);
+  background: #262019;
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .terms-badge--soft {
+  background: #262019;
+}
+
+[data-bs-theme="dark"] .auth-terms-scroll,
+[data-bs-theme="dark"] .terms-scroll,
+[data-bs-theme="dark"] .auth-status-pre {
+  background: #262019;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+[data-bs-theme="dark"] .terms-seg {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #262019;
+}
+
+/* Logout button -> error tint */
+[data-bs-theme="dark"] .auth-logout-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+[data-bs-theme="dark"] .auth-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.55);
+}

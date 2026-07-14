@@ -67,8 +67,8 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, invoiceNo, onDismis
     <div style={{ marginTop: '24px', marginBottom: '24px' }}>
       {/* Header Summary */}
       <div style={{
-        backgroundColor: '#ffffff',
-        border: '2px solid #e5e7eb',
+        backgroundColor: 'var(--hd-surface)',
+        border: '2px solid var(--hd-border)',
         borderRadius: '12px',
         padding: '20px',
         marginBottom: '16px',
@@ -76,11 +76,11 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, invoiceNo, onDismis
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#111827' }}>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'var(--hd-text)' }}>
               Doğrulama Sonuçları
             </h3>
             {invoiceNo && (
-              <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
+              <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: 'var(--hd-text-muted)' }}>
                 Fatura No: <strong>{DOMPurify.sanitize(invoiceNo)}</strong>
               </p>
             )}
@@ -97,7 +97,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, invoiceNo, onDismis
                 }}>
                   {criticalCount}
                 </div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--hd-text-muted)', marginTop: '4px' }}>
                   Kritik Hata
                 </div>
               </div>
@@ -113,7 +113,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, invoiceNo, onDismis
                 }}>
                   {warningCount}
                 </div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--hd-text-muted)', marginTop: '4px' }}>
                   Uyarı
                 </div>
               </div>
@@ -183,8 +183,8 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, invoiceNo, onDismis
                       <span style={{
                         fontSize: '11px',
                         fontFamily: 'monospace',
-                        color: '#6b7280',
-                        backgroundColor: '#f3f4f6',
+                        color: 'var(--hd-text-muted)',
+                        backgroundColor: 'var(--hd-code-bg)',
                         padding: '2px 6px',
                         borderRadius: '4px'
                       }}>
@@ -207,7 +207,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, invoiceNo, onDismis
                   <p style={{
                     margin: '0 0 12px 0',
                     fontSize: '14px',
-                    color: '#374151',
+                    color: 'var(--hd-text)',
                     lineHeight: '1.5'
                   }}>
                     {error.description}
@@ -217,7 +217,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, invoiceNo, onDismis
                   {error.field && (
                     <div style={{
                       fontSize: '13px',
-                      color: '#6b7280',
+                      color: 'var(--hd-text-muted)',
                       marginBottom: '8px',
                       display: 'flex',
                       alignItems: 'center',
@@ -225,7 +225,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, invoiceNo, onDismis
                     }}>
                       <span style={{ fontWeight: '600' }}>Alan:</span>
                       <code style={{
-                        backgroundColor: '#f3f4f6',
+                        backgroundColor: 'var(--hd-code-bg)',
                         padding: '2px 6px',
                         borderRadius: '4px',
                         fontSize: '12px',
@@ -258,7 +258,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, invoiceNo, onDismis
                       </div>
                       <div style={{
                         fontSize: '13px',
-                        color: '#374151',
+                        color: 'var(--hd-text)',
                         lineHeight: '1.5'
                       }}>
                         {error.suggestion}
@@ -301,23 +301,23 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, invoiceNo, onDismis
           <button
             onClick={onDismiss}
             style={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #d1d5db',
+              backgroundColor: 'var(--hd-surface)',
+              border: '1px solid var(--hd-border-strong)',
               borderRadius: '6px',
               padding: '8px 16px',
               fontSize: '14px',
               fontWeight: '500',
-              color: '#374151',
+              color: 'var(--hd-text)',
               cursor: 'pointer',
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f9fafb';
-              e.currentTarget.style.borderColor = '#9ca3af';
+              e.currentTarget.style.backgroundColor = 'var(--hd-surface-2)';
+              e.currentTarget.style.borderColor = 'var(--hd-border-strong)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#ffffff';
-              e.currentTarget.style.borderColor = '#d1d5db';
+              e.currentTarget.style.backgroundColor = 'var(--hd-surface)';
+              e.currentTarget.style.borderColor = 'var(--hd-border-strong)';
             }}
           >
             Kapat

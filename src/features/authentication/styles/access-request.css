@@ -263,3 +263,113 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   DARK MODE
+   Activated when <html data-bs-theme="dark">.
+   Shared palette:
+     page #17120f · surface #1e1a18 · elevated #262019
+     subtle border rgba(255,255,255,0.10) · strong border rgba(255,255,255,0.16)
+     text #e8e6e3 · muted #9ca3af
+     success bg rgba(16,185,129,0.15)/text #6ee7b7/border rgba(16,185,129,0.4)
+     error   bg rgba(239,68,68,0.15)/text #fca5a5/border rgba(239,68,68,0.4)
+     info tint bg rgba(59,130,246,0.15)
+   Solid gradient accent buttons are left as-is (read fine on dark).
+   ============================================================ */
+
+/* Card / surface */
+[data-bs-theme="dark"] .ar-card {
+  background: #1e1a18;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Header icon badge -> info tint + lightened accent */
+[data-bs-theme="dark"] .ar-icon {
+  background: rgba(59, 130, 246, 0.15);
+  color: #a5b4fc;
+}
+
+/* Headings / text */
+[data-bs-theme="dark"] .ar-header h2 {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ar-subtitle {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .ar-section-title {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ar-hint {
+  color: #9ca3af;
+}
+
+/* Country chips */
+[data-bs-theme="dark"] .ar-chip {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #262019;
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ar-chip:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .ar-chip--active {
+  border-color: #6366f1;
+  background: rgba(59, 130, 246, 0.15);
+  color: #a5b4fc;
+  box-shadow: 0 0 0 1px #6366f1 inset;
+}
+
+/* Feature cards */
+[data-bs-theme="dark"] .ar-feature-card {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #262019;
+}
+
+[data-bs-theme="dark"] .ar-feature-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .ar-feature-card--active {
+  border-color: #6366f1;
+  background: rgba(59, 130, 246, 0.15);
+}
+
+[data-bs-theme="dark"] .ar-feature-label {
+  color: #e8e6e3;
+}
+
+/* Textarea (elevated input surface) */
+[data-bs-theme="dark"] .ar-textarea {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #262019;
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ar-textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Alerts -> translucent tints */
+[data-bs-theme="dark"] .ar-alert--success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+[data-bs-theme="dark"] .ar-alert--error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Footer */
+[data-bs-theme="dark"] .ar-footer {
+  color: #9ca3af;
+}

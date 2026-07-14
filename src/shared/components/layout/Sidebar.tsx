@@ -6,6 +6,8 @@ import {
   type FeatureKey,
 } from "../../../features/authentication/hooks/usePermissions";
 import { useAuth } from "../../../features/authentication/context/AuthContext";
+import { useTheme } from "../../../shared/theme/ThemeContext";
+import { Moon, Sun } from "lucide-react";
 import userImage from "../../../assets/images/user.jpg";
 import {
   SidebarIcons,
@@ -43,6 +45,7 @@ const Sidebar: React.FC = () => {
   const [isFolded, setIsFolded] = useState(false);
   const { isUnlocked, isAdmin } = usePermissions();
   const { user, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -106,9 +109,27 @@ const Sidebar: React.FC = () => {
 
       {/* ── USER SECTION ── */}
       <div className="user-section">
-        <div className="user-img">
-          <img src={userImage} alt="User" />
+        <div className="user-left">
+          <div className="user-img">
+            <img src={userImage} alt="User" />
+          </div>
+
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+          >
+            {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+            <span className="theme-toggle-label">
+              {theme === "dark" ? "Light" : "Dark"}
+            </span>
+          </button>
         </div>
+
         <div className="user-details">
           <p className="user-title">{isAdmin ? "ADMIN" : "STAFF"}</p>
           <p className="user-name">{user?.name ?? "User"}</p>

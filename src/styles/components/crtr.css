@@ -468,3 +468,113 @@ body {
   color: #383d41;
   border: 1px solid #d6d8db;
 }
+
+/* ==========================================================================
+   DARK MODE
+   Activated when the root <html> element has [data-bs-theme="dark"].
+   Uses the shared dark palette kept consistent across the app.
+   This section only overrides values; it does not modify existing rules.
+   ========================================================================== */
+
+[data-bs-theme="dark"] {
+    /* Semantic variable overrides — the body rule and all var()-based
+       rules inherit these automatically (incl. body background/text). */
+    --color-text-base: #e8e6e3;
+    --color-text-secondary: #9ca3af;
+    --color-text-heading: #f3f4f6;
+    --color-background-page: #17120f;
+    --color-background-component: #1e1a18;
+    --color-border: rgba(255, 255, 255, 0.16);
+    --color-border-light: rgba(255, 255, 255, 0.10);
+    --color-divider: rgba(255, 255, 255, 0.08);
+    --color-error-background: rgba(239, 68, 68, 0.15);
+    --color-error-border: rgba(239, 68, 68, 0.4);
+    --color-error-text: #fca5a5;
+    --color-highlight-background: rgba(59, 130, 246, 0.15);
+    --color-header-background: #262019;
+
+    /* Brighten the primary accent hover for contrast on dark surfaces. */
+    --color-primary-hover: #3b82f6;
+}
+
+/* --- Overrides for rules using LITERAL light values (not covered by vars) --- */
+
+/* Inputs: elevated dark surface instead of hard-coded #fff */
+[data-bs-theme="dark"] .sch-in,
+[data-bs-theme="dark"] .txt-in,
+[data-bs-theme="dark"] select.txt-in {
+    background-color: #262019;
+    color: var(--color-text-base);
+}
+
+/* File input: was using component background literal; keep consistent */
+[data-bs-theme="dark"] .file-in {
+    background-color: #262019;
+    color: var(--color-text-base);
+}
+
+/* Secondary button: was #fff bg with #eee/#bbb hover */
+[data-bs-theme="dark"] .btn-sec {
+    background-color: #262019;
+    color: var(--color-text-base);
+    border-color: var(--color-border);
+}
+
+[data-bs-theme="dark"] .btn-sec:hover {
+    background-color: #33291f;
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Summary panel: was #f8f9fa bg with #dee2e6 border */
+[data-bs-theme="dark"] .summary-panel {
+    background-color: #1e1a18;
+    border-color: rgba(255, 255, 255, 0.10);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-bs-theme="dark"] .summary-item h3 {
+    color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .summary-item p {
+    color: #e8e6e3;
+}
+
+/* Config sections: replace light tints (#f3fcf2 / #f0f7ff) with dark translucent tints */
+[data-bs-theme="dark"] .cfg-sec.item {
+    background-color: rgba(30, 128, 79, 0.15);
+    border-color: rgba(110, 231, 183, 0.3);
+}
+
+[data-bs-theme="dark"] .cfg-sec.tax {
+    background-color: rgba(59, 130, 246, 0.15);
+    border-color: rgba(147, 197, 253, 0.3);
+}
+
+/* Lighten config section heading text for dark contrast */
+[data-bs-theme="dark"] .cfg-sec-h.item {
+    color: #6ee7b7;
+}
+
+[data-bs-theme="dark"] .cfg-sec-h.tax {
+    color: #93c5fd;
+}
+
+/* Summary status badges -> translucent dark tints with lightened text */
+[data-bs-theme="dark"] .summary-status.ok {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+[data-bs-theme="dark"] .summary-status.mismatch {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-bs-theme="dark"] .summary-status.nodata {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+    border-color: rgba(255, 255, 255, 0.16);
+}

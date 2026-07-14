@@ -274,3 +274,99 @@
     padding: 20px 16px 48px;
   }
 }
+
+/* ─────────────────────────────────────────────
+   DARK MODE
+   Activated by [data-bs-theme="dark"] on <html>
+   ───────────────────────────────────────────── */
+[data-bs-theme="dark"] .home-title {
+  color: #f1f5f9;
+}
+
+[data-bs-theme="dark"] .home-subtitle,
+[data-bs-theme="dark"] .home-detail-value,
+[data-bs-theme="dark"] .home-resource-card p {
+  color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .home-section-title {
+  color: #f1f5f9;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Quick Start steps */
+[data-bs-theme="dark"] .home-step {
+  background: #1c1715;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .home-step strong {
+  color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .home-step p,
+[data-bs-theme="dark"] .home-how-list,
+[data-bs-theme="dark"] .home-feature-desc {
+  color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .home-step-num {
+  background: #6366f1;
+}
+
+/* Feature cards */
+[data-bs-theme="dark"] .home-feature-card {
+  background: #1c1715;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+[data-bs-theme="dark"] .home-feature-card:hover {
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+[data-bs-theme="dark"] .home-feature-title {
+  color: #f1f5f9;
+}
+
+[data-bs-theme="dark"] .home-feature-icon,
+[data-bs-theme="dark"] .home-detail-label,
+[data-bs-theme="dark"] .home-resource-icon {
+  color: #818cf8;
+}
+
+/* How-to list container */
+[data-bs-theme="dark"] .home-feature-how {
+  background: #17120f;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Resource cards */
+[data-bs-theme="dark"] .home-resource-card {
+  background: #1c1715;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .home-resource-card:hover {
+  border-color: #64748b;
+  background: #241d1a;
+}
+
+[data-bs-theme="dark"] .home-resource-card strong {
+  color: #e2e8f0;
+}
+
+/* Disclosure / warning block */
+[data-bs-theme="dark"] .home-disclosure {
+  background: #2a2410;
+  border-color: #5c4a12;
+}
+
+[data-bs-theme="dark"] .home-disclosure .home-section-title {
+  border-bottom-color: #5c4a12;
+}
+
+[data-bs-theme="dark"] .home-disclosure p {
+  color: #fde68a;
+}

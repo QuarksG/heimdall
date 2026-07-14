@@ -1,0 +1,91 @@
+/* src/styles/variables.css
+   App-wide theme tokens. Loaded globally in main.tsx.
+   Inline styles in components reference these via var(--hd-*) so they
+   flip automatically with [data-bs-theme] on <html>. */
+
+:root {
+  --hd-surface: #ffffff;
+  --hd-surface-2: #f8f9fa;
+  --hd-border: #e5e7eb;
+  --hd-border-strong: #d1d5db;
+  --hd-text: #1e293b;
+  --hd-text-muted: #6b7280;
+  --hd-danger-bg: #fee2e2;
+  --hd-danger-text: #991b1b;
+  --hd-warning-bg: #fff3cd;
+  --hd-warning-border: #ffc107;
+  --hd-danger-border: #d32f2f;
+  --hd-success-bg: #e8f5e9;
+  --hd-success-border: #4caf50;
+  --hd-success-text: #1b5e20;
+  --hd-link: #0066cc;
+  --hd-code-bg: #f3f4f6;
+  --hd-warning-text: #856404;
+  --hd-chip-bad-bg: #ffcdd2;
+  --hd-chip-bad-text: #b71c1c;
+  --hd-chip-good-bg: #c8e6c9;
+  --hd-chip-good-text: #1b5e20;
+}
+
+[data-bs-theme="dark"] {
+  --hd-surface: #1e1a18;
+  --hd-surface-2: #262019;
+  --hd-border: rgba(255, 255, 255, 0.10);
+  --hd-border-strong: rgba(255, 255, 255, 0.16);
+  --hd-text: #e8e6e3;
+  --hd-text-muted: #9ca3af;
+  --hd-danger-bg: rgba(239, 68, 68, 0.15);
+  --hd-danger-text: #fca5a5;
+  --hd-warning-bg: rgba(245, 158, 11, 0.15);
+  --hd-warning-border: rgba(245, 158, 11, 0.55);
+  --hd-danger-border: rgba(239, 68, 68, 0.5);
+  --hd-success-bg: rgba(16, 185, 129, 0.15);
+  --hd-success-border: rgba(16, 185, 129, 0.5);
+  --hd-success-text: #6ee7b7;
+  --hd-link: #93c5fd;
+  --hd-code-bg: #302820;
+  --hd-warning-text: #fcd34d;
+  --hd-chip-bad-bg: rgba(239, 68, 68, 0.22);
+  --hd-chip-bad-text: #fca5a5;
+  --hd-chip-good-bg: rgba(16, 185, 129, 0.22);
+  --hd-chip-good-text: #6ee7b7;
+}
+
+/* Safety net: keep the root background dark so no light flashes through
+   behind app chrome when dark mode is active. */
+[data-bs-theme="dark"] body {
+  background-color: #14100f;
+}
+
+/* ─────────────────────────────────────────────
+   Bootstrap fixed-utility overrides for dark mode.
+   .text-dark / .bg-light / .bg-white / .text-black are ABSOLUTE
+   utilities in Bootstrap 5.3 — they do NOT adapt to data-bs-theme.
+   These rules give them theme-correct values. The [data-bs-theme]
+   prefix raises specificity above Bootstrap's own !important rules.
+   (.text-muted / .text-secondary are already theme-adaptive in 5.3.)
+   ───────────────────────────────────────────── */
+[data-bs-theme="dark"] .text-dark,
+[data-bs-theme="dark"] .text-black {
+  color: #e8e6e3 !important;
+}
+
+[data-bs-theme="dark"] .bg-white {
+  background-color: #1e1a18 !important;
+}
+
+[data-bs-theme="dark"] .bg-light {
+  background-color: #262019 !important;
+}
+
+/* .table-light forces a fixed light table header — remap its
+   Bootstrap table variables so it darkens with the theme. */
+[data-bs-theme="dark"] .table-light {
+  --bs-table-color: #e8e6e3;
+  --bs-table-bg: #262019;
+  --bs-table-border-color: rgba(255, 255, 255, 0.16);
+  --bs-table-striped-color: #e8e6e3;
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
+  --bs-table-hover-color: #e8e6e3;
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.06);
+}

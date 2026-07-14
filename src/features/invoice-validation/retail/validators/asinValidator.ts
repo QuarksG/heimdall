@@ -215,7 +215,7 @@ export const performSATISValidations = (
       '<p>Aşağıdaki ürünler için ASIN kodları geçerli değildir:</p>',
       renderInvalidTable(invalidASINs),
       '<p>ASIN genel olarak 10 karakter uzunluğunda olmalı ve alfanumerik ASIN\'ler "B" harfiyle başlamalıdır. ISBN-10 formatıyla eşleşen kitap ASIN\'leri ise yalnızca rakamlardan veya rakam-harf kombinasyonlarından oluşabilir.</p>',
-      '<div style="margin: 16px 0 !important; padding: 16px !important; background-color: #fff3cd !important; border-left: 4px solid #ffc107 !important; border-radius: 4px !important;">'
+      '<div style="margin: 16px 0 !important; padding: 16px !important; background-color: var(--hd-warning-bg) !important; border-left: 4px solid var(--hd-warning-border) !important; border-radius: 4px !important;">'
     );
 
     if (hasValidPO && orderReference) {
@@ -225,17 +225,17 @@ export const performSATISValidations = (
 
       messageParts.push(
         '<p style="margin: 0 0 12px 0 !important;"><strong>⚠️ Önemli:</strong> Lütfen faturanızın aşağıdaki PO\'ya göre düzenlendiğini kontrol edin:</p>',
-        `<p style="margin: 0 0 12px 0 !important;">📋 <a href="${poLink}" target="_blank" rel="noopener noreferrer" style="color: #0066cc !important; text-decoration: underline !important;">PO Detaylarını Görüntüle (PO: ${safeText(
+        `<p style="margin: 0 0 12px 0 !important;">📋 <a href="${poLink}" target="_blank" rel="noopener noreferrer" style="color: var(--hd-link) !important; text-decoration: underline !important;">PO Detaylarını Görüntüle (PO: ${safeText(
           orderReference
         )})</a></p>`,
-        '<p style="margin: 0 0 8px 0 !important; color: #856404 !important;">Amazon, PO\'daki (Satın Alma Siparişi) ürünlerle faturadaki ürünlerin ASIN bazında %100 eşleşmesini beklemektedir. Tarafınızdan yüklenen faturada ASIN alanlarına girilen kodlar geçerli bir ASIN kodu olmadığından, lütfen PO\'da hangi ASIN kodlarının yer aldığını kontrol ve teyit ediniz ve tedarikçiden fatura "BuyersItemIdentification" satırlarına ASIN kodlarını girmesini talep ediniz.</p>',
-        '<p style="margin: 0 !important; color: #856404 !important;">Eşleşmeyen ürünler PQV (Purchase Quantity Variation) oluşturur ve bu durum fatura ödeme gecikmelerine neden olabilir.</p>'
+        '<p style="margin: 0 0 8px 0 !important; color: var(--hd-warning-text) !important;">Amazon, PO\'daki (Satın Alma Siparişi) ürünlerle faturadaki ürünlerin ASIN bazında %100 eşleşmesini beklemektedir. Tarafınızdan yüklenen faturada ASIN alanlarına girilen kodlar geçerli bir ASIN kodu olmadığından, lütfen PO\'da hangi ASIN kodlarının yer aldığını kontrol ve teyit ediniz ve tedarikçiden fatura "BuyersItemIdentification" satırlarına ASIN kodlarını girmesini talep ediniz.</p>',
+        '<p style="margin: 0 !important; color: var(--hd-warning-text) !important;">Eşleşmeyen ürünler PQV (Purchase Quantity Variation) oluşturur ve bu durum fatura ödeme gecikmelerine neden olabilir.</p>'
       );
     } else {
       messageParts.push(
         '<p style="margin: 0 0 12px 0 !important;"><strong>⚠️ Önemli:</strong> Faturanızda PO (Sipariş Numarası) bulunamadığı veya geçerli formatta olmadığı için ASIN kodlarını PO ile doğrulayamıyoruz.</p>',
-        '<p style="margin: 0 0 8px 0 !important; color: #856404 !important;">Amazon, PO\'daki (Satın Alma Siparişi) ürünlerle faturadaki ürünlerin ASIN bazında %100 eşleşmesini beklemektedir. Öncelikle faturanıza geçerli bir PO numarası eklemeniz gerekmektedir. Ardından, PO\'da hangi ASIN kodlarının yer aldığını kontrol edip, tedarikçiden fatura "BuyersItemIdentification" satırlarına doğru ASIN kodlarını girmesini talep ediniz.</p>',
-        '<p style="margin: 0 !important; color: #856404 !important;">Eşleşmeyen ürünler PQV (Purchase Quantity Variation) oluşturur ve bu durum fatura ödeme gecikmelerine neden olabilir.</p>'
+        '<p style="margin: 0 0 8px 0 !important; color: var(--hd-warning-text) !important;">Amazon, PO\'daki (Satın Alma Siparişi) ürünlerle faturadaki ürünlerin ASIN bazında %100 eşleşmesini beklemektedir. Öncelikle faturanıza geçerli bir PO numarası eklemeniz gerekmektedir. Ardından, PO\'da hangi ASIN kodlarının yer aldığını kontrol edip, tedarikçiden fatura "BuyersItemIdentification" satırlarına doğru ASIN kodlarını girmesini talep ediniz.</p>',
+        '<p style="margin: 0 !important; color: var(--hd-warning-text) !important;">Eşleşmeyen ürünler PQV (Purchase Quantity Variation) oluşturur ve bu durum fatura ödeme gecikmelerine neden olabilir.</p>'
       );
     }
 

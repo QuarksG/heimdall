@@ -46,8 +46,8 @@ export const validateDFInvoice = (xmlDoc: Document): string => {
     messageParts.push(...addressErrors);
   } else {
     messageParts.push(
-      '<div style="background:#e8f5e9;padding:12px;border-radius:8px;border-left:5px solid #4caf50;margin:12px 0;">',
-      '<p style="color:#1b5e20;margin:0;"><strong>✅ Adres Bilgileri Doğru:</strong> Faturanızdaki Amazon müşteri bilgileri (Esentepe/Şişli) doğru görünüyor.</p>',
+      '<div style="background:var(--hd-success-bg);padding:12px;border-radius:8px;border-left:5px solid var(--hd-success-border);margin:12px 0;">',
+      '<p style="color:var(--hd-success-text);margin:0;"><strong>✅ Adres Bilgileri Doğru:</strong> Faturanızdaki Amazon müşteri bilgileri (Esentepe/Şişli) doğru görünüyor.</p>',
       '</div>'
     );
   }
@@ -59,8 +59,8 @@ export const validateDFInvoice = (xmlDoc: Document): string => {
     messageParts.push(...taxErrors);
   } else {
     messageParts.push(
-      '<div style="background:#e8f5e9;padding:12px;border-radius:8px;border-left:5px solid #4caf50;margin:12px 0;">',
-      '<p style="color:#1b5e20;margin:0;"><strong>✅ Vergi Detayları Doğru:</strong> Faturanızdaki temel vergi alanları mevcut ve dip toplam uyumu sağlanıyor.</p>',
+      '<div style="background:var(--hd-success-bg);padding:12px;border-radius:8px;border-left:5px solid var(--hd-success-border);margin:12px 0;">',
+      '<p style="color:var(--hd-success-text);margin:0;"><strong>✅ Vergi Detayları Doğru:</strong> Faturanızdaki temel vergi alanları mevcut ve dip toplam uyumu sağlanıyor.</p>',
       '</div>'
     );
   }
@@ -73,8 +73,8 @@ export const validateDFInvoice = (xmlDoc: Document): string => {
     hasErrors = true;
   } else if (poResult.results.length > 0) {
     messageParts.push(
-      '<div style="background:#e8f5e9;padding:12px;border-radius:8px;border-left:5px solid #4caf50;margin:12px 0;">',
-      '<p style="color:#1b5e20;margin:0;"><strong>✅ PO Numaraları Doğru:</strong> Tüm satırlardaki PO numaraları geçerli formatta.</p>',
+      '<div style="background:var(--hd-success-bg);padding:12px;border-radius:8px;border-left:5px solid var(--hd-success-border);margin:12px 0;">',
+      '<p style="color:var(--hd-success-text);margin:0;"><strong>✅ PO Numaraları Doğru:</strong> Tüm satırlardaki PO numaraları geçerli formatta.</p>',
       '</div>'
     );
   }
@@ -87,8 +87,8 @@ export const validateDFInvoice = (xmlDoc: Document): string => {
     hasErrors = true;
   } else {
     messageParts.push(
-      '<div style="background:#e8f5e9;padding:12px;border-radius:8px;border-left:5px solid #4caf50;margin:12px 0;">',
-      '<p style="color:#1b5e20;margin:0;"><strong>✅ ASIN Kodları Doğru:</strong> Tüm satırlarda geçerli ASIN veya ISBN-10 kodu mevcut.</p>',
+      '<div style="background:var(--hd-success-bg);padding:12px;border-radius:8px;border-left:5px solid var(--hd-success-border);margin:12px 0;">',
+      '<p style="color:var(--hd-success-text);margin:0;"><strong>✅ ASIN Kodları Doğru:</strong> Tüm satırlarda geçerli ASIN veya ISBN-10 kodu mevcut.</p>',
       '</div>'
     );
   }

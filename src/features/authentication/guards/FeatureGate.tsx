@@ -37,7 +37,7 @@ export default function FeatureGate({ featureId, children }: Props) {
           width: 64,
           height: 64,
           borderRadius: "50%",
-          background: "#fee2e2",
+          background: "var(--hd-danger-bg)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -47,11 +47,11 @@ export default function FeatureGate({ featureId, children }: Props) {
         <i className="ph-bold ph-lock-key" style={{ color: "#b91c1c" }} />
       </div>
 
-      <h2 style={{ margin: 0, fontSize: 22, color: "#1e293b" }}>
+      <h2 style={{ margin: 0, fontSize: 22, color: "var(--hd-text)" }}>
         Access Denied
       </h2>
 
-      <p style={{ margin: 0, color: "#64748b", maxWidth: 420, lineHeight: 1.6 }}>
+      <p style={{ margin: 0, color: "var(--hd-text-muted)", maxWidth: 420, lineHeight: 1.6 }}>
         {featureId === "Settings" ? (
           <>
             This page is restricted to <strong>administrators</strong>. If you

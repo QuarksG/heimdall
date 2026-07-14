@@ -6,7 +6,7 @@ const stripIndent = (html: string) =>
 
 export const getInitialGreeting = (): string =>
   stripIndent(`
-    <div class="greeting-card" style="width:94%;max-width:1040px;margin:0 auto;padding:32px 40px;border-radius:22px;background:#fff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 2px 10px rgba(0,0,0,0.06);line-height:1.6;">
+    <div class="greeting-card" style="width:94%;max-width:1040px;margin:0 auto;padding:32px 40px;border-radius:22px;background:var(--hd-surface);border:1px solid rgba(0,0,0,0.06);box-shadow:0 2px 10px rgba(0,0,0,0.06);line-height:1.6;">
       <p class="greeting-title" style="margin:0 0 18px 0;font-weight:700;">
         Faturanızın XML formatını yükleyerek aşağıdaki XML satırlarının Amazon standartlarına uygun olup olmadığını doğrulayabilirsiniz:
       </p>

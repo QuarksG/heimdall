@@ -75,18 +75,18 @@ const extractMusterinoFromAccountingCustomerParty = (
 };
 
 const musterinoPlacementHtml = `
-<div style="margin-top:10px;padding:10px;background-color:#fff7ed;border:1px solid #fed7aa;border-radius:6px;">
+<div style="margin-top:10px;padding:10px;background-color:var(--hd-warning-bg);border:1px solid var(--hd-warning-border);border-radius:6px;">
   <p style="margin:0 0 8px 0;"><strong>✅ MUSTERINO alanı XML'de aşağıdaki şekilde yer almalıdır:</strong></p>
-  <pre style="margin:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px;overflow:auto;"><code>&lt;cac:PartyIdentification&gt;
+  <pre style="margin:0;background:var(--hd-surface);border:1px solid var(--hd-border);border-radius:8px;padding:10px;overflow:auto;"><code>&lt;cac:PartyIdentification&gt;
   &lt;cbc:ID schemeID="MUSTERINO"&gt;310&lt;/cbc:ID&gt;
 &lt;/cac:PartyIdentification&gt;</code></pre>
-  <p style="margin:8px 0 0 0;color:#6b7280;">
+  <p style="margin:8px 0 0 0;color:var(--hd-text-muted);">
     Not: Drop Ship (DF) faturaları için MUSTERINO değeri mutlaka <strong>310</strong> olmalıdır.
   </p>
 </div>`;
 
 const musterinoGuideHtml = `
-<div style="margin-top:10px;padding:10px;background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;">
+<div style="margin-top:10px;padding:10px;background-color:var(--hd-surface-2);border:1px solid var(--hd-border);border-radius:6px;">
   <p style="margin:0 0 8px 0;">
     <strong>📌 MUSTERINO nedir?</strong>
     MUSTERINO, Amazon'un farklı birimleri için kullandığı özel bir müşteri kodudur. Bu kod, faturanızın doğru ekibe yönlendirilmesini sağlar.
@@ -94,13 +94,13 @@ const musterinoGuideHtml = `
   <ul style="margin:0;padding-left:18px;">
     <li style="margin:6px 0;">
       <strong>310 (Amazon DF / Drop Ship)</strong><br/>
-      <span style="color:#374151;">
+      <span style="color:var(--hd-text);">
         Drop Ship faturaları için kullanılır. Bu tür faturalar <strong>Drop Ship ID</strong> üzerinden ilerler.
         DF faturalarında iade (IPV/IQV) senaryosu bulunmamaktadır.
       </span>
     </li>
   </ul>
-  <p style="margin:10px 0 0 0;color:#6b7280;">
+  <p style="margin:10px 0 0 0;color:var(--hd-text-muted);">
     Not: PO bazlı faturalar (210) veya AR süreçleri (220) için bu Drop Ship aracı geçerli değildir.
   </p>
 </div>
@@ -149,8 +149,8 @@ export const validateDFInvoiceHeader = (
     const upperType = invoiceTypeCode.toLocaleUpperCase('tr-TR').trim();
     if (upperType === 'IADE' || upperType === 'IRSALIYE') {
       messages.push(
-        `<div style="background:#ffebee;padding:12px;border-radius:8px;border-left:5px solid #d32f2f;margin:12px 0;">`,
-        `<p style="color:#d32f2f;margin:0;"><strong>⚠️ Drop Ship faturalarında IADE (IPV/IQV) senaryosu bulunmamaktadır.</strong></p>`,
+        `<div style="background:var(--hd-danger-bg);padding:12px;border-radius:8px;border-left:5px solid var(--hd-danger-border);margin:12px 0;">`,
+        `<p style="color:var(--hd-danger-text);margin:0;"><strong>⚠️ Drop Ship faturalarında IADE (IPV/IQV) senaryosu bulunmamaktadır.</strong></p>`,
         `<p style="margin:6px 0 0 0;">Fatura türü <strong>${sanitize(invoiceTypeCode)}</strong> olarak belirtilmiş. Drop Ship faturaları yalnızca <strong>SATIS</strong> türünde olmalıdır.</p>`,
         `</div>`
       );
@@ -160,8 +160,8 @@ export const validateDFInvoiceHeader = (
   /* ── MUSTERINO check (STRICT location + STRICT value) ── */
   if (musterino === NOT_FOUND || !musterino) {
     messages.push(
-      `<div style="background:#ffebee;padding:12px;border-radius:8px;border-left:5px solid #d32f2f;margin:12px 0;">`,
-      `<p style="color:#d32f2f;margin:0;"><strong>⚠️ MUSTERINO (Müşteri No) alanı bulunamadı veya boş.</strong></p>`,
+      `<div style="background:var(--hd-danger-bg);padding:12px;border-radius:8px;border-left:5px solid var(--hd-danger-border);margin:12px 0;">`,
+      `<p style="color:var(--hd-danger-text);margin:0;"><strong>⚠️ MUSTERINO (Müşteri No) alanı bulunamadı veya boş.</strong></p>`,
       `<p style="margin:6px 0 0 0;">MUSTERINO, yalnızca <strong>cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification</strong> altında yer almalı ve <strong>310</strong> olmalıdır.</p>`,
       `</div>`
     );
@@ -173,7 +173,7 @@ export const validateDFInvoiceHeader = (
   // Optional: warn if multiple nodes exist in the required path (still only checks this path)
   if (musterinoExtract.count > 1) {
     messages.push(
-      `<div style="background:#fff7ed;padding:12px;border-radius:8px;border-left:5px solid #f59e0b;margin:12px 0;">`,
+      `<div style="background:var(--hd-warning-bg);padding:12px;border-radius:8px;border-left:5px solid var(--hd-warning-border);margin:12px 0;">`,
       `<p style="margin:0;"><strong>⚠️ MUSTERINO alanı birden fazla kez bulunmuştur (${musterinoExtract.count}).</strong></p>`,
       `<p style="margin:6px 0 0 0;">Doğrulama için ilk değer dikkate alındı: <strong>${sanitize(musterino)}</strong></p>`,
       `</div>`
@@ -186,14 +186,14 @@ export const validateDFInvoiceHeader = (
 
   if (musterino === DF_REQUIRED_MUSTERINO) {
     messages.push(
-      `<div style="background:#e8f5e9;padding:12px;border-radius:8px;border-left:5px solid #4caf50;margin:8px 0;">`,
-      `<p style="color:#1b5e20;margin:0;">✅ MUSTERINO değeri <strong>310</strong>. Drop Ship (DF) faturaları için doğru.</p>`,
+      `<div style="background:var(--hd-success-bg);padding:12px;border-radius:8px;border-left:5px solid var(--hd-success-border);margin:8px 0;">`,
+      `<p style="color:var(--hd-success-text);margin:0;">✅ MUSTERINO değeri <strong>310</strong>. Drop Ship (DF) faturaları için doğru.</p>`,
       `</div>`
     );
   } else {
     messages.push(
-      `<div style="background:#ffebee;padding:12px;border-radius:8px;border-left:5px solid #d32f2f;margin:8px 0;">`,
-      `<p style="color:#d32f2f;margin:0;"><strong>⚠️ MUSTERINO değeri Drop Ship faturaları için geçersiz.</strong></p>`,
+      `<div style="background:var(--hd-danger-bg);padding:12px;border-radius:8px;border-left:5px solid var(--hd-danger-border);margin:8px 0;">`,
+      `<p style="color:var(--hd-danger-text);margin:0;"><strong>⚠️ MUSTERINO değeri Drop Ship faturaları için geçersiz.</strong></p>`,
       `<p style="margin:6px 0 0 0;">Mevcut değer: <strong>${sanitize(musterino)}</strong>. Drop Ship faturalarında MUSTERINO mutlaka <strong>310</strong> olmalıdır.</p>`,
       `</div>`
     );

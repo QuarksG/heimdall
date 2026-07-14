@@ -246,3 +246,96 @@
 .chat-messages::-webkit-scrollbar-thumb:hover {
   background-color: #6b7280;
 }
+
+
+/* ============================================================
+   DARK MODE
+   Activated when <html data-bs-theme="dark">.
+   Shared app palette:
+     - Page/container background:      #1e1a18
+     - Bot message bubble surface:     #262019
+     - Elevated surface (code/table):  #302820
+     - Subtle border:                  rgba(255, 255, 255, 0.10)
+     - Stronger border:                rgba(255, 255, 255, 0.16)
+     - Primary text:                   #e8e6e3
+     - Muted text:                     #9ca3af
+   User message bubble & upload button stay blue (#007bff).
+   ============================================================ */
+
+[data-bs-theme="dark"] .chat-container {
+  background-color: #1e1a18;
+}
+
+[data-bs-theme="dark"] .chat-messages {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .message-content {
+  background-color: #262019;
+  color: #e8e6e3;
+}
+
+/* User bubble intentionally kept blue (#007bff) — reads fine in dark mode */
+
+[data-bs-theme="dark"] .message-content pre {
+  background-color: #302820;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .message-content code {
+  background-color: #302820;
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .message-content table {
+  background: #262019;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+}
+
+[data-bs-theme="dark"] .message-content thead th {
+  background: #302820;
+  color: #e8e6e3;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.16);
+}
+
+[data-bs-theme="dark"] .message-content tbody td {
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .message-content th,
+[data-bs-theme="dark"] .message-content td {
+  border-right: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .message-content th:not(:first-child),
+[data-bs-theme="dark"] .message-content td:not(:first-child) {
+  border-left: 2px solid rgba(255, 255, 255, 0.16);
+}
+
+[data-bs-theme="dark"] .message-content tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-bs-theme="dark"] .message-content tbody tr:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .chat-input {
+  background-color: #1e1a18;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+/* Upload button intentionally kept blue (#007bff) */
+
+[data-bs-theme="dark"] .file-info {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .chat-messages::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+[data-bs-theme="dark"] .chat-messages::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.24);
+}
