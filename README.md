@@ -71,3 +71,7 @@ export default defineConfig([
   },
 ])
 ```
+
+Legal:
+
+"This tool is provided solely for informational and assistance purposes to help vendors verify invoice details and identify potential errors prior to submission. The use of this validation tool does not constitute a commitment, guarantee, or obligation on the part of Amazon to process, accept, or pay any invoice reviewed through this tool. The validation results are non-binding and shall not be construed as an approval or confirmation of payment for any invoice. Vendors remain fully responsible for ensuring the accuracy and completeness of their invoices in accordance with applicable contractual terms and policies."
