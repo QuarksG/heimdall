@@ -2,6 +2,26 @@ import { NAMESPACES } from '../constants/namespaces';
 import type { FieldDefinition } from '../constants/fieldDefinitions';
 import { initialFieldDefinitions } from '../constants/fieldDefinitions';
 
+export interface TaxSchemePair {
+  code: string;
+  name: string;
+}
+
+/**
+ * GİB tax type code → canonical scheme name.
+ * Used as fallback when a TaxScheme omits <cbc:Name> (the code is the
+ * authoritative field; the name is optional in practice).
+ */
+const TAX_TYPE_CODE_NAMES: Record<string, string> = {
+  '0015': 'KDV',
+  '0071': 'ÖTV', // Petrol ve doğalgaz ürünleri (I sayılı liste)
+  '0073': 'ÖTV', // Kolalı gazoz, alkollü içecek ve tütün mamulleri
+  '0074': 'ÖTV', // Dayanıklı tüketim ve diğer mallar
+  '0075': 'ÖTV', // Alkollü içecekler
+  '0076': 'ÖTV', // Tütün mamulleri
+  '0077': 'ÖTV', // Kolalı gazozlar
+};
+
 export class XMLToExcelConverter {
   xpathEvaluator: XPathEvaluator;
 
@@ -144,6 +164,107 @@ export class XMLToExcelConverter {
       values.push(result.snapshotItem(i)?.textContent || '');
     }
     return values.join(', ');
+  }
+
+  /** ÖTV (special consumption tax) GİB code family. */
+  private static readonly OTV_CODES = new Set(['0071', '0073', '0074', '0075', '0076', '0077']);
+
+  /**
+   * Splits a line's TaxSubtotals into KDV and ÖTV parts, keyed by
+   * TaxTypeCode (0015 = KDV, 0071–0077 = ÖTV) with a name-based fallback
+   * when the code is missing.
+   *
+   * Note the cascade on ÖTV-liable lines: KDV base = LineExtensionAmount
+   * + ÖTV amount (KDV Kanunu m.24), so kdvBase intentionally differs from
+   * the line net on those lines.
+   */
+  private collectLineTaxParts(lineNode: Node): { kdvBase: number | null; kdvAmount: number | null; otvAmount: number | null } {
+    let kdvBase: number | null = null;
+    let kdvAmount: number | null = null;
+    let otvAmount: number | null = null;
+
+    const subtotals = this.getNodesByXPath(lineNode, './/cac:TaxTotal/cac:TaxSubtotal');
+    for (const st of subtotals) {
+      const code = (this.evaluateSingle(st, './cac:TaxCategory/cac:TaxScheme/cbc:TaxTypeCode') ?? '').trim();
+      const name = (this.evaluateSingle(st, './cac:TaxCategory/cac:TaxScheme/cbc:Name') ?? '').trim().toLocaleUpperCase('tr-TR');
+      const taxable = parseFloat(this.evaluateSingle(st, './cbc:TaxableAmount') ?? '');
+      const amount = parseFloat(this.evaluateSingle(st, './cbc:TaxAmount') ?? '');
+
+      const isKdv = code === '0015' || (!code && (name === 'KDV' || name.includes('KATMA DEĞER')));
+      const isOtv = XMLToExcelConverter.OTV_CODES.has(code) || (!code && (name === 'ÖTV' || name.includes('ÖZEL TÜKETİM')));
+
+      if (isKdv) {
+        if (!Number.isNaN(taxable)) kdvBase = (kdvBase ?? 0) + taxable;
+        if (!Number.isNaN(amount)) kdvAmount = (kdvAmount ?? 0) + amount;
+      } else if (isOtv) {
+        if (!Number.isNaN(amount)) otvAmount = (otvAmount ?? 0) + amount;
+      }
+    }
+    return { kdvBase, kdvAmount, otvAmount };
+  }
+
+  extractLineKdvBase(lineNode: Node): string {
+    const v = this.collectLineTaxParts(lineNode).kdvBase;
+    return v == null ? '' : v.toFixed(2);
+  }
+
+  extractLineKdvAmount(lineNode: Node): string {
+    const v = this.collectLineTaxParts(lineNode).kdvAmount;
+    return v == null ? '' : v.toFixed(2);
+  }
+
+  extractLineOtvAmount(lineNode: Node): string {
+    const v = this.collectLineTaxParts(lineNode).otvAmount;
+    return v == null ? '' : v.toFixed(2);
+  }
+
+  /**
+   * Extracts (TaxTypeCode, Name) pairs from TaxSubtotal nodes, reading both
+   * values from the SAME node so they can never be mismatched.
+   *
+   * Background: some vendors (e.g. Kuzey Pet) omit <cbc:Name> on KDV
+   * subtotals while ÖTV subtotals carry both Name and TaxTypeCode. Two
+   * independent first-match XPaths then pair the ÖTV name with the KDV
+   * code (0015). Pairing per node + code-based name fallback fixes this.
+   *
+   * Pairs are deduplicated by TaxTypeCode (the authoritative field),
+   * preserving document order.
+   */
+  extractTaxSchemePairs(context: Node, subtotalXPath: string): TaxSchemePair[] {
+    const pairs: TaxSchemePair[] = [];
+    const seen = new Set<string>();
+
+    const nodes = this.getNodesByXPath(context, subtotalXPath);
+    for (const node of nodes) {
+      const code = (this.evaluateSingle(node, './cac:TaxCategory/cac:TaxScheme/cbc:TaxTypeCode') ?? '').trim();
+      let name = (this.evaluateSingle(node, './cac:TaxCategory/cac:TaxScheme/cbc:Name') ?? '').trim();
+
+      if (!name) name = TAX_TYPE_CODE_NAMES[code] ?? code;
+      if (!code && !name) continue;
+
+      const key = code || name;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      pairs.push({ code, name });
+    }
+    return pairs;
+  }
+
+  extractDocTaxNames(xmlDoc: Node): string {
+    const pairs = this.extractTaxSchemePairs(
+      xmlDoc,
+      '//cac:TaxTotal[not(ancestor::cac:InvoiceLine)]/cac:TaxSubtotal'
+    );
+    return pairs.length > 0 ? pairs.map(p => p.name).join(', ') : 'Unknown';
+  }
+
+  extractDocTaxTypeCodes(xmlDoc: Node): string {
+    const pairs = this.extractTaxSchemePairs(
+      xmlDoc,
+      '//cac:TaxTotal[not(ancestor::cac:InvoiceLine)]/cac:TaxSubtotal'
+    );
+    return pairs.length > 0 ? pairs.map(p => p.code || 'Unknown').join(', ') : 'Unknown';
   }
 
   extractCustomerAddress(xmlDoc: Node): string {
@@ -294,7 +415,7 @@ export class XMLToExcelConverter {
       const rowData: any = {};
 
       lineDefs.forEach(def => {
-        if (type === 'DespatchLine' && (def.key === 'unit_price'|| def.key.includes('discount')|| def.key === 'line_total' || def.key.includes('tax'))) {
+        if (type === 'DespatchLine' && (def.key === 'unit_price'|| def.key.includes('discount')|| def.key === 'line_total' || def.key.includes('tax') || def.key.includes('kdv') || def.key.includes('otv'))) {
           rowData[def.key] = 'N/A';
         } else {
           let val = this.extractValue(lineNode, def);
@@ -306,6 +427,19 @@ export class XMLToExcelConverter {
           rowData[def.key] = val;
         }
       });
+
+      // Tax Type / Tax Type Code: prefer this line's own TaxSubtotals over the
+      // document-level value, so multi-tax lines (e.g. KDV + ÖTV) show all of
+      // their schemes correctly paired. Falls back to headerData when the line
+      // carries no tax scheme info.
+      if (type === 'InvoiceLine') {
+        const linePairs = this.extractTaxSchemePairs(lineNode, './/cac:TaxTotal/cac:TaxSubtotal');
+        if (linePairs.length > 0) {
+          rowData['doc_tax_name'] = linePairs.map(p => p.name).join(', ');
+          rowData['doc_tax_type_code'] = linePairs.map(p => p.code || 'Unknown').join(', ');
+        }
+      }
+
       rows.push(rowData);
     }
     return rows;

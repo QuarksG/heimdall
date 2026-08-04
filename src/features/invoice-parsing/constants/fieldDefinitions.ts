@@ -176,14 +176,18 @@ export const initialFieldDefinitions: FieldDefinition[] = [
     xpaths: ['//cac:TaxTotal/cac:TaxSubtotal/cbc:Percent'],
   },
   {
+    // Name and code are extracted together from the same TaxSubtotal node
+    // (paired by TaxTypeCode) to avoid mismatched name/code combinations
+    // when a scheme omits <cbc:Name>. Multi-tax documents (e.g. KDV + ÖTV)
+    // produce comma-separated, positionally aligned values.
     key: 'doc_tax_name',
     label: 'Tax Type',
-    xpaths: ['//cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cac:TaxScheme/cbc:Name'],
+    customHandler: 'extractDocTaxNames',
   },
   {
     key: 'doc_tax_type_code',
     label: 'Tax Type Code',
-    xpaths: ['//cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cac:TaxScheme/cbc:TaxTypeCode'],
+    customHandler: 'extractDocTaxTypeCodes',
   },
    {
      key: 'invoice_discount_amount',
@@ -291,6 +295,29 @@ export const initialFieldDefinitions: FieldDefinition[] = [
     label: 'Tax Rate % (Line)',
     isLineItem: true,
     xpaths: ['.//cac:TaxTotal/cac:TaxSubtotal/cbc:Percent'],
+  },
+
+  // Per-scheme tax breakdown (KDV vs ÖTV). On ÖTV-liable lines the KDV base
+  // is LineExtensionAmount + ÖTV (cascade per KDV Kanunu m.24), so
+  // "KDV Base × Tax Rate = KDV Amount" reconciles directly in Excel.
+  // Empty when the line carries no such scheme.
+  {
+    key: 'line_kdv_base',
+    label: 'KDV Base (Line)',
+    isLineItem: true,
+    customHandler: 'extractLineKdvBase',
+  },
+  {
+    key: 'line_kdv_amount',
+    label: 'KDV Amount (Line)',
+    isLineItem: true,
+    customHandler: 'extractLineKdvAmount',
+  },
+  {
+    key: 'line_otv_amount',
+    label: 'ÖTV Amount (Line)',
+    isLineItem: true,
+    customHandler: 'extractLineOtvAmount',
   },
 ];
 
