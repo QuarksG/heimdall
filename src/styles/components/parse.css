@@ -210,6 +210,12 @@
   cursor: pointer;
 }
 
+.invoice-parse .records-summary {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
 /* ==========================================================================
    Dark mode
    Activated when the root <html> element has [data-bs-theme="dark"].
@@ -289,4 +295,8 @@
 
 [data-bs-theme="dark"] .invoice-parse .invoiceSidebar label {
   color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .invoice-parse .records-summary {
+  color: #9ca3af;
 }

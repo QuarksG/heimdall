@@ -1,0 +1,117 @@
+// HEIMDALL - DATA SCHEMA / ERD
+// Paste this whole file into an Eraser entity-relationship canvas (NOT the cloud one).
+// pk = partition key, sk = sort key, fk = logical reference (a GSI makes it queryable; DynamoDB enforces nothing).
+// Join key everywhere = Cognito sub (immutable). Attributes ending in Email are display only, never joined.
+// (NEW) marks audit-feature additions. Rules followed so it parses: no inline comments on attribute lines.
+
+cognito_user [icon: aws-cognito, color: blue] {
+  sub string pk
+  email string
+  groups string
+}
+
+access_request [icon: aws-dynamodb, color: green] {
+  id string pk
+  userId string fk
+  email string
+  fullName string
+  country string
+  requestedFeatures string
+  justification string
+  status string
+  createdAt timestamp
+  reviewedById string fk
+  reviewedByEmail string
+  reviewedAt timestamp
+}
+
+entitlement [icon: aws-dynamodb, color: orange] {
+  id string pk
+  userId string fk
+  country string
+  allowedFeatures string
+  status string
+  grantedById string fk
+  grantedByEmail string
+  grantedAt timestamp
+  revokedById string fk
+  revokedByEmail string
+  revokedAt timestamp
+  supersededByGrantId string fk
+}
+
+terms_acceptance [icon: aws-dynamodb, color: gray] {
+  id string pk
+  termsVersion string
+  sessionId string
+  acceptedAt timestamp
+}
+
+audit_record [icon: aws-dynamodb, color: red] {
+  chainPartition string pk
+  sequenceNumber number sk
+  auditId string
+  recordType string
+  runId string fk
+  causationId string fk
+  actorId string fk
+  actorEmail string
+  actorGroups string
+  recordedAt timestamp
+  clientReportedAt timestamp
+  expiresAt number
+  action string
+  featureKey string
+  runStatus string
+  fileName string
+  fileByteSize number
+  contentHash string
+  parsedInvoiceCount number
+  supplierVatIds string
+  errorCount number
+  modelName string
+  recordId string fk
+  modelRecordKey string
+  versionNumber number
+  beforeSnapshot json
+  afterSnapshot json
+  chainDigest string
+  prevChainDigest string fk
+}
+
+// ===================== Relationships (join attribute named on each line) =====================
+// request subject: who the request is about
+access_request.userId > cognito_user.sub
+// request actor: which Admin reviewed it (NEW)
+access_request.reviewedById > cognito_user.sub
+// grant subject: who the grant is for (GSI byUser, max one ACTIVE per user)
+entitlement.userId > cognito_user.sub
+// grant actors: which Admin granted or revoked (NEW)
+entitlement.grantedById > cognito_user.sub
+entitlement.revokedById > cognito_user.sub
+// grant version chain: old grant points at the grant that replaced it (NEW)
+entitlement.supersededByGrantId > entitlement.id
+// audit actor: who performed the action (sub, or UNATTRIBUTED)
+audit_record.actorId > cognito_user.sub
+// version records point at the changed row via modelRecordKey GSI
+audit_record.recordId > access_request.id
+audit_record.recordId > entitlement.id
+audit_record.recordId > terms_acceptance.id
+// provenance: each event points at its predecessor in the same interaction (runId groups them)
+audit_record.causationId > audit_record.auditId
+// tamper evidence: each record chains to its predecessor digest
+audit_record.prevChainDigest > audit_record.chainDigest
+
+// ===================== Facts ERD syntax cannot show (kept as comments) =====================
+// access_request  GSI byStatus       pk status         sk createdAt      -> removes the Admin panel Scan (NEW)
+// entitlement     GSI byUser         pk userId         sk grantedAt      -> login reads newest ACTIVE grant (NEW)
+// entitlement     status ACTIVE or REVOKED, never deleted, one row per grant (was one row per user, overwritten)
+// audit_record    GSI byActorEmail   pk actorEmail     sk recordedAt     -> console filter by user + date
+// audit_record    GSI byFeatureKey   pk featureKey     sk recordedAt
+// audit_record    GSI byRunStatus    pk runStatus      sk recordedAt
+// audit_record    GSI byModelRecord  pk modelRecordKey sk versionNumber  -> version history + next version
+// audit_record    GSI byRunId        pk runId          sk recordedAt     -> whole interaction in one query
+// audit_record    recordedAt = server clock (authoritative), clientReportedAt = untrusted browser clock
+// audit_record    expiresAt = recordedAt + 730 days, purged by retentionManager which appends a purge marker
+// audit_record    contentHash = file identity fact, NOT a join key (runId is the correlation key)
+// audit_record    sequenceNumber contiguous 1..n, a gap means deletion, chainDigest = SHA-256 tamper evidence

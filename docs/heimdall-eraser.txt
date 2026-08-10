@@ -1,0 +1,186 @@
+// HEIMDALL - CLOUD ARCHITECTURE (paste whole file into an Eraser cloud-architecture canvas)
+// Data schema is in heimdall-erd-eraser.txt (separate ERD canvas)
+// (NEW) = audit-trail addition. CHANGED noted in comments on affected lines.
+
+direction down
+typeface clean
+styleMode shadow
+colorMode pastel
+
+"Staff user" [icon: user]
+"Admin user" [icon: user-check]
+"Internet" [icon: globe]
+
+// Edge/hosting
+"Route 53" [icon: aws-route-53]
+"CloudFront" [icon: aws-cloudfront]
+"AWS WAF" [icon: aws-waf]
+"Amplify Hosting" [icon: aws-amplify]
+
+// Frontend (DDD-ish)
+"Heimdall SPA" [icon: layout] {
+  "Presentation layer" {
+    "Auth pages (Register/Login/Forgot PW)" [icon: lock]
+    "Protected routes (first gate)" [icon: shield-check]
+    "Landing page (feature catalog)" [icon: grid]
+    "Access Request Details form" [icon: file-text]
+    "Admin panel (requests & approvals)" [icon: user-check]
+    "Audit console (Admin only) (NEW)" [icon: search]
+  }
+  "Application layer" {
+    "AuthContext + useAuth" [icon: key]
+    "usePermissions (RBAC/ABAC)" [icon: shield-check]
+    "API client" [icon: cloud]
+    "Audit capture (NEW)" [icon: activity]
+    "Hash worker (NEW)" [icon: cpu]
+  }
+  "Bounded contexts (src/features)" {
+    "authentication" [icon: lock]
+    "invoice-parsing" [icon: file-text]
+    "invoice-validation" [icon: check-circle]
+    "payment-reconciliation" [icon: database]
+    "crtr-extraction" [icon: file-search]
+    "invoice-conversion" [icon: repeat]
+  }
+}
+
+// Identity - pool itself untouched (840+ users keep accounts and sessions)
+"Cognito User Pool" [icon: aws-cognito] {
+  "Email OTP verification" [icon: mail]
+  "User Pool Groups (Admin/Staff)" [icon: aws-identity-and-access-management]
+  "PreSignUp Lambda (domain allowlist)" [icon: aws-lambda]
+  "PreTokenGen Lambda (claims injection)" [icon: aws-lambda]
+}
+
+// APIs
+"API Gateway (Cognito JWT authorizer)" [icon: aws-api-gateway]
+"AccessRequestService Lambda" [icon: aws-lambda]
+"AdminApprovalService Lambda" [icon: aws-lambda]
+"TermsService Lambda (pre-signup)" [icon: aws-lambda]
+"AuditIngestService Lambda (NEW)" [icon: aws-lambda]
+"AuditQueryService Lambda (NEW)" [icon: aws-lambda]
+"AuditVerifier Lambda (NEW)" [icon: aws-lambda]
+"VersionRecorder Lambda (NEW)" [icon: aws-lambda]
+"RetentionManager Lambda (NEW)" [icon: aws-lambda]
+"EventBridge daily schedule (NEW)" [icon: aws-eventbridge]
+// Existing but previously missing from all diagrams. Receives RAW INVOICE XML with no auth header - review
+"Invoice Rendering API (Lightsail eu-west-2)" [icon: aws-lightsail]
+
+// Service identity - NO IAM users exist. Humans = Cognito groups / services = IAM execution roles
+"IAM execution roles" [icon: aws-identity-and-access-management] {
+  "auditIngest role (NEW)" [icon: key]
+  "versionRecorder role (NEW)" [icon: key]
+  "retentionManager role - only delete in system (NEW)" [icon: key]
+  "preTokenGen role - scoped read (CHANGED)" [icon: key]
+}
+
+// Data
+"AccessRequests (DynamoDB)" [icon: aws-dynamodb]
+"AccessGrants (DynamoDB)" [icon: aws-dynamodb]
+"TermsAcceptance (DynamoDB)" [icon: aws-dynamodb]
+"AuditRecords (DynamoDB append-only) (NEW)" [icon: aws-dynamodb]
+
+// Observability / audit
+"CloudWatch Logs" [icon: aws-cloudwatch]
+"CloudTrail" [icon: aws-cloudtrail]
+
+// ===================== Hosting path =====================
+"Staff user" > "Internet": open Amplify URL
+"Admin user" > "Internet": open Amplify URL
+"Internet" > "Route 53": DNS resolution
+"Route 53" > "CloudFront": route to CDN
+"CloudFront" > "AWS WAF": inspect traffic
+"AWS WAF" > "CloudFront": allow/block
+"CloudFront" > "Amplify Hosting": serve SPA assets
+"Amplify Hosting" > "Heimdall SPA": load application
+
+// ===================== Terms acceptance (pre-signup) =====================
+"Heimdall SPA" > "API Gateway (Cognito JWT authorizer)": accept terms (unauthenticated route)
+"API Gateway (Cognito JWT authorizer)" > "TermsService Lambda (pre-signup)": handle acceptance
+"TermsService Lambda (pre-signup)" > "TermsAcceptance (DynamoDB)": PutItem if id not exists
+
+// ===================== Authentication (first gate) =====================
+"Heimdall SPA" > "Cognito User Pool": sign up / sign in / forgot password
+"Cognito User Pool" > "PreSignUp Lambda (domain allowlist)": validate email domain
+"PreSignUp Lambda (domain allowlist)" > "Cognito User Pool": allow or reject signup
+"Cognito User Pool" > "Email OTP verification": send OTP
+"Email OTP verification" > "Staff user": deliver OTP
+"Staff user" > "Cognito User Pool": confirm OTP
+"Cognito User Pool" > "Heimdall SPA": issue JWT tokens
+
+// ===================== Role & permission claims =====================
+"Cognito User Pool" > "User Pool Groups (Admin/Staff)": group membership
+// CHANGED: newest ACTIVE grant only / revoked user gets EMPTY claims / stale-attribute fallback deleted
+"Cognito User Pool" > "PreTokenGen Lambda (claims injection)": on login and token refresh
+"PreTokenGen Lambda (claims injection)" > "AccessGrants (DynamoDB)": read newest ACTIVE grant
+"PreTokenGen Lambda (claims injection)" > "Cognito User Pool": add claims to JWT
+"Cognito User Pool" > "Heimdall SPA": updated JWT with claims
+"Heimdall SPA" > "usePermissions (RBAC/ABAC)": compute allowed routes/features
+
+// ===================== Access request workflow =====================
+"Heimdall SPA" > "API Gateway (Cognito JWT authorizer)": submit access request
+"API Gateway (Cognito JWT authorizer)" > "AccessRequestService Lambda": create request
+"AccessRequestService Lambda" > "AccessRequests (DynamoDB)": PutItem (PENDING)
+"Heimdall SPA" > "API Gateway (Cognito JWT authorizer)": list my requests
+"API Gateway (Cognito JWT authorizer)" > "AccessRequestService Lambda": query requests
+"AccessRequestService Lambda" > "AccessRequests (DynamoDB)": Query by userId
+"Heimdall SPA" > "API Gateway (Cognito JWT authorizer)": admin list pending
+"API Gateway (Cognito JWT authorizer)" > "AdminApprovalService Lambda": query pending
+"AdminApprovalService Lambda" > "AccessRequests (DynamoDB)": Query by status=PENDING (GSI byStatus NEW)
+"Heimdall SPA" > "API Gateway (Cognito JWT authorizer)": approve or reject request
+"API Gateway (Cognito JWT authorizer)" > "AdminApprovalService Lambda": process decision
+"AdminApprovalService Lambda" > "AccessRequests (DynamoDB)": UpdateItem APPROVED/REJECTED
+// CHANGED: soft revocation - one row per grant / mark REVOKED / never delete
+"AdminApprovalService Lambda" > "AccessGrants (DynamoDB)": new grant row or mark old REVOKED (never delete)
+"Heimdall SPA" > "Cognito User Pool": refresh session
+"Cognito User Pool" > "PreTokenGen Lambda (claims injection)": rebuild claims
+"PreTokenGen Lambda (claims injection)" > "AccessGrants (DynamoDB)": read updated grants
+"Cognito User Pool" > "Heimdall SPA": JWT now includes allowedFeatures
+
+// ===================== Audit trail - activity capture (NEW) =====================
+// Browser reports WHAT happened. Server stamps WHO and WHEN from verified JWT claims
+"Bounded contexts (src/features)" > "Audit capture (NEW)": file submitted / run completed / result downloaded
+"Audit capture (NEW)" > "Hash worker (NEW)": SHA-256 hash file bytes off main thread
+"Audit capture (NEW)" > "API Gateway (Cognito JWT authorizer)": POST /audit/events (runId correlation - never blocks user)
+"API Gateway (Cognito JWT authorizer)" > "AuditIngestService Lambda (NEW)": verified claims only
+"AuditIngestService Lambda (NEW)" > "AuditRecords (DynamoDB append-only) (NEW)": conditional append (sequence + digest)
+
+// ===================== Audit trail - record versioning (NEW) =====================
+// DynamoDB Streams fire on COMMITTED writes only - covers every writer including TermsService
+"AccessRequests (DynamoDB)" > "VersionRecorder Lambda (NEW)": stream NEW_AND_OLD_IMAGES
+"AccessGrants (DynamoDB)" > "VersionRecorder Lambda (NEW)": stream NEW_AND_OLD_IMAGES
+"TermsAcceptance (DynamoDB)" > "VersionRecorder Lambda (NEW)": stream NEW_AND_OLD_IMAGES
+"VersionRecorder Lambda (NEW)" > "AuditRecords (DynamoDB append-only) (NEW)": append before/after version record
+
+// ===================== Audit trail - read / verify / retention (NEW) =====================
+// Browser never touches DynamoDB or Lambda directly - all reads via API Gateway
+"Audit console (Admin only) (NEW)" > "API Gateway (Cognito JWT authorizer)": filter / page / export / verify (Admin group)
+"API Gateway (Cognito JWT authorizer)" > "AuditQueryService Lambda (NEW)": query audit trail
+"AuditQueryService Lambda (NEW)" > "AuditRecords (DynamoDB append-only) (NEW)": Query via GSIs (READ-ONLY)
+"API Gateway (Cognito JWT authorizer)" > "AuditVerifier Lambda (NEW)": verify chain integrity for range
+"AuditVerifier Lambda (NEW)" > "AuditRecords (DynamoDB append-only) (NEW)": recompute digests and report gaps
+"API Gateway (Cognito JWT authorizer)" > "AuditIngestService Lambda (NEW)": record AUDIT_EXPORTED after export
+"EventBridge daily schedule (NEW)" > "RetentionManager Lambda (NEW)": trigger daily
+"RetentionManager Lambda (NEW)" > "AuditRecords (DynamoDB append-only) (NEW)": purge 730-day expired prefix + purge marker
+
+// ===================== PDF generation (existing - was missing) =====================
+// NOTE: full invoice XML leaves the browser here with NO auth header - review this
+"invoice-conversion" > "Invoice Rendering API (Lightsail eu-west-2)": POST /generate-pdf (raw UBL XML)
+"Invoice Rendering API (Lightsail eu-west-2)" > "invoice-conversion": PDF blob download
+
+// ===================== IAM enforcement (who can touch what) =====================
+"IAM execution roles" > "AuditRecords (DynamoDB append-only) (NEW)": writes = 3 roles only / delete = retentionManager only
+"IAM execution roles" > "AccessGrants (DynamoDB)": preTokenGen scoped read (ListTables wildcard removed)
+
+// ===================== Logging & audit =====================
+"API Gateway (Cognito JWT authorizer)" > "CloudWatch Logs": access logs
+"AccessRequestService Lambda" > "CloudWatch Logs": function logs
+"AdminApprovalService Lambda" > "CloudWatch Logs": function logs
+"AuditIngestService Lambda (NEW)" > "CloudWatch Logs": structured line per record (free second copy)
+"VersionRecorder Lambda (NEW)" > "CloudWatch Logs": function logs
+"Cognito User Pool" > "CloudWatch Logs": auth logs
+"API Gateway (Cognito JWT authorizer)" > "CloudTrail": API events
+"AccessRequests (DynamoDB)" > "CloudTrail": table events
+"AccessGrants (DynamoDB)" > "CloudTrail": table events
+"AuditRecords (DynamoDB append-only) (NEW)" > "CloudTrail": table events
+"Cognito User Pool" > "CloudTrail": auth events

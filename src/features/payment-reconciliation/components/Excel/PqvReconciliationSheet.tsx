@@ -23,10 +23,11 @@ export class PqvReconciliationSheet {
       'Fatura Türü': m.invoiceType,
       'Fatura Numarası': m.invoiceNumber,
       'Fatura Tarihi': m.invoiceDate,
+      'Yaş (Gün)': m.agingDays ?? '',
       'PO: Sipariş Numarası': m.poNumber, 
       'Fatura Açıklaması': m.description,
-      'Alacak': this.parseNumber(m.credit),
-      'Borç': this.parseNumber(m.debit),
+      'Alacak': m.credit,
+      'Borç': m.debit,
       'Parent Invoice (RIGHT16)': m.parentInvoiceCandidate,
       'Key2 (PO#Amount)': m.matchKey,
       'Matched Parents From Sales': m.matchedParents,
@@ -53,22 +54,11 @@ export class PqvReconciliationSheet {
       colIndices.forEach(c => {
         const addr = XLSX.utils.encode_cell({ c, r });
         const cell = sheet[addr];
-        if (cell) {
-          const num = typeof cell.v === 'number' 
-            ? cell.v 
-            : parseFloat(String(cell.v).replace(/,/g, ''));
-            
-          if (!isNaN(num)) {
-            sheet[addr] = { t: 'n', v: num, z: '#,##0.00' };
-          }
+        // Amounts are numeric on the record — format number cells only.
+        if (cell && typeof cell.v === 'number') {
+          sheet[addr] = { t: 'n', v: cell.v, z: '#,##0.00' };
         }
       });
     }
-  }
-
-  private parseNumber(val: string | undefined): number {
-    if (!val) return 0;
-    const num = parseFloat(String(val).replace(/,/g, ''));
-    return isNaN(num) ? 0 : num;
   }
 }

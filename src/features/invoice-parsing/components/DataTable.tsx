@@ -110,7 +110,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, headers, searchQuery
         </table>
       </div>
       
-      <div style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>
+      <div className="records-summary">
         Showing {Math.min(itemsPerPage, processedData.length)} of {processedData.length} records
       </div>
     </>

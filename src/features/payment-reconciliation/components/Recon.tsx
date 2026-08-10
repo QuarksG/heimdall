@@ -10,12 +10,16 @@ const Recon: React.FC = () => {
     isProcessing, 
     error, 
     successMessage, 
+    warnings,
     processFile, 
     exportExcel 
   } = useReconciliationProcess('TR');
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    // Reset the input so selecting the SAME file again re-fires onChange
+    // (BC-13: retrying an upload after a fix used to be a silent no-op).
+    event.target.value = '';
     if (file) processFile(file);
   };
 
@@ -81,8 +85,36 @@ const Recon: React.FC = () => {
         {error && (
           <div className="alert alert-danger d-flex align-items-center mt-3" role="alert">
             <div className="flex-grow-1">
-              <strong>Analysis Failed:</strong> {error}
+              {/* The hook labels the origin ("Analysis failed:" vs
+                  "Export failed:") — no hardcoded prefix here (BC-59). */}
+              <strong>{error}</strong>
             </div>
+          </div>
+        )}
+
+        {/* 2b. Data-quality warnings. The FULL detail lives in the
+            workbook's "Disclaimer" sheet — on screen we only announce the
+            count and direct the analyst there. Exception: when the parse
+            FAILED there is no workbook to download, so the detailed list
+            is shown here as the only available diagnostic. */}
+        {!isProcessing && warnings.length > 0 && (
+          <div className="alert alert-warning mt-3" role="alert">
+            {hasData ? (
+              <>
+                <strong>Data quality: {warnings.length} finding(s) need your attention.</strong>{' '}
+                Download the Excel report and inspect the <strong>"Disclaimer"</strong> sheet
+                against Amazon invoice rules and policies.
+              </>
+            ) : (
+              <>
+                <strong>Data quality warnings ({warnings.length}):</strong>
+                <ul className="mb-0 mt-2">
+                  {warnings.map((warning, i) => (
+                    <li key={i}>{warning}</li>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         )}
 

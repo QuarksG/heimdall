@@ -52,27 +52,8 @@ export abstract class BaseRemittanceProcessor {
     return [null, null];
   }
   
-  protected validateWorksheet(worksheet: any[][]): { isValid: boolean; message: string } {
-    const rowCount = worksheet.length;
-    const disclaimerText = this.getDisclaimerText();
-    
-    const firstFortyRows = [];
-    for (let rowIndex = 0; rowIndex < Math.min(40, rowCount); rowIndex++) {
-      const firstColumn = worksheet[rowIndex] ? worksheet[rowIndex][0] : null;
-      firstFortyRows.push(firstColumn);
-    }
-    
-    const disclaimerFound = firstFortyRows.some((value) => 
-      this.isValuePresent(value) && this.normalizeText(String(value)).includes(disclaimerText)
-    );
-    
-    if (!disclaimerFound) {
-      return {
-        isValid: false,
-        message: `The uploaded worksheet does not appear to be a remittance advice.\n\nThe expected disclaimer text was not found in the first 40 rows of column A:\n"${disclaimerText}"\n\nPlease ensure you have pasted the remittance email directly into Excel and try again.`
-      };
-    }
-    
-    return { isValid: true, message: '' };
-  }
+  // NOTE: worksheet integrity validation (the disclaimer gate) is owned by
+  // `logic/validators/fileIntegrityValidator.ts` and invoked by the region
+  // processor's `parse()`. The old `validateWorksheet` duplicate that lived
+  // here was dead code and has been removed.
 }

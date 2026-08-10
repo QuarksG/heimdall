@@ -9,7 +9,7 @@ import Home from "./shared/components/layout/Home";
 
 import InvoiceParsing from "./features/invoice-parsing/components/InvoiceParsing";
 import InvoiceVerify from "./features/invoice-conversion/components/InvoiceVerify";
-import PaymentReconciliation from "./features/payment-reconciliation/components/Recon";
+import { Recon as PaymentReconciliation } from "./features/payment-reconciliation";
 
 import InvoiceControl from "./features/invoice-validation/retail/components/InvoiceControl";
 import { DFChatInterface } from "./features/invoice-validation/dropship";

@@ -1,0 +1,31 @@
+# Amplify Gen 2 build spec — standard shape plus an explicit Node pin.
+# Vite 7 requires Node >= 20.19 (local dev runs 20.19.6); without the
+# pin the build image's default Node decides, and drift between local
+# and CI is exactly what this file prevents. Dependencies install with
+# `npm ci` only, so the committed package-lock.json governs versions.
+version: 1
+backend:
+  phases:
+    build:
+      commands:
+        - nvm use 20
+        - node --version
+        - npm ci --cache .npm --prefer-offline
+        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - nvm use 20
+        - node --version
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - .npm/**/*
+      - node_modules/**/*

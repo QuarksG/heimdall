@@ -13,6 +13,9 @@ export class PaymentDataSheet {
   }
 
   private mapRecordsToRows(records: PaymentRecord[]) {
+    // Amounts arrive numeric (parsed once at the boundary). Display
+    // convention preserved from the original remittance ledger: a zero
+    // credit/debit renders as an EMPTY cell, not 0.00.
     return records.map(record => ({
       'Satır Numarası': record.rowNumber,
       'Ödeme yapılacak taraf': record.payee,
@@ -23,11 +26,14 @@ export class PaymentDataSheet {
       'Fatura Türü': record.invoiceType,
       'Fatura Numarası': record.invoiceNumber,
       'Fatura Tarihi': record.invoiceDate,
+      // AGE: payment date − invoice date (basis of the aged report).
+      // Empty for the synthetic transfer row / unparseable dates.
+      'Yaş (Gün)': record.agingDays ?? '',
       'PO: Sipariş Numarası': record.poNumber,
       'Fatura Açıklaması': record.description,
       'Uygulanan indirim': record.discount,
-      'Alacak': record.credit,
-      'Borç': record.debit,
+      'Alacak': record.credit === 0 ? '' : record.credit,
+      'Borç': record.debit === 0 ? '' : record.debit,
       'Bakiye': record.balance
     }));
   }
@@ -65,19 +71,17 @@ export class PaymentDataSheet {
         
         const addr = colLetter + (r + 1); // +1 for header
         const cell = sheet[addr];
-        
-        if (cell) {
-          const rawVal = cell.v;
-          const numVal = typeof rawVal === 'number' ? rawVal : parseFloat(String(rawVal).replace(/,/g, ''));
-          
-          if (!isNaN(numVal)) {
-            sheet[addr] = {
-              t: 'n',
-              v: numVal,
-              z: '#,##0.00',
-              s: isHavaleRow ? yellowFill : undefined
-            };
-          }
+
+        // Amounts are numeric on the record; empty cells (zero credit/debit
+        // display convention) stay as they are — only number cells get the
+        // currency format.
+        if (cell && typeof cell.v === 'number') {
+          sheet[addr] = {
+            t: 'n',
+            v: cell.v,
+            z: '#,##0.00',
+            s: isHavaleRow ? yellowFill : undefined
+          };
         }
       });
     }

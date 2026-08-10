@@ -1,36 +1,22 @@
-export interface ProcessedInvoice {
-  payee: string;
-  supplierNumber: string;
-  vendorSite: string;
-  paymentNumber: string;
-  paymentDate: string;
-  currency: string;
-  paymentAmount: string;
-  invoiceNumber: string;
-  invoiceDate: string;
-  poNumber: string;
-  description: string;
-  discount: string;
-  credit: string;
-  debit: string;
-  invoiceType: string;
-  balance?: string;
-}
-
+/**
+ * Region classifier contract. Implementations are thin interpreters —
+ * recognition rules live as data in
+ * `logic/classifiers/invoiceClassificationRules.ts`.
+ *
+ * (The old `ProcessedInvoice` interface and text helpers that lived here
+ * were dead code duplicating `PaymentRecord` — removed, BC-21.)
+ */
 export abstract class BaseInvoiceClassifier {
-  protected containsText(text: string, searchTerm: string): boolean {
-    return text.toUpperCase().includes(searchTerm.toUpperCase());
-  }
-  
-  protected getPrefix(text: string, length: number): string {
-    return text.slice(0, length);
-  }
-  
-  protected getSuffix(text: string, length: number): string {
-    return text.slice(-length);
-  }
-  
-  public abstract classify(invoiceNumber: string, description: string): string;
-  
+  /**
+   * Classifies a row. `context` (optional) carries the money direction —
+   * Alacak/Borç — for the few rules that depend on it; text-only callers
+   * may omit it.
+   */
+  public abstract classify(
+    invoiceNumber: string,
+    description: string,
+    context?: { credit: number; debit: number },
+  ): string;
+
   public abstract extractPurchaseOrder(description: string): string;
 }

@@ -249,3 +249,17 @@
 [data-bs-theme="dark"] .info-card {
   color: #e8e6e3;
 }
+
+/* Action buttons: Bootstrap's btn-outline-dark renders near-black text and
+   border, which disappears against the dark surface (the Print icon was
+   invisible). Re-map it to a light outline in dark mode only. */
+[data-bs-theme="dark"] .invoice-verify-page .btn-outline-dark {
+  --bs-btn-color: #e8e6e3;
+  --bs-btn-border-color: rgba(255, 255, 255, 0.16);
+  --bs-btn-hover-color: #17120f;
+  --bs-btn-hover-bg: #e8e6e3;
+  --bs-btn-hover-border-color: #e8e6e3;
+  --bs-btn-active-color: #17120f;
+  --bs-btn-active-bg: #e8e6e3;
+  --bs-btn-active-border-color: #e8e6e3;
+}

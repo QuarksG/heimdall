@@ -23,7 +23,8 @@ export class HavaleSheet {
           'Ödeme tarihi': row.paymentDate,
           'Ödeme Numarası': row.paymentNumber,
           'Ödeme para birimi': row.currency,
-          'Ödeme Tutarı': this.parseAmount(row.paymentAmount)
+          // Numeric on the record (parsed once at the boundary).
+          'Ödeme Tutarı': row.paymentAmount
         });
       }
     });
@@ -48,10 +49,5 @@ export class HavaleSheet {
         };
       }
     }
-  }
-
-  private parseAmount(val: string): number {
-    const clean = String(val).replace(/,/g, '');
-    return parseFloat(clean) || 0;
   }
 }

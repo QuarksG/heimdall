@@ -1,14 +1,28 @@
 import { BaseRemittanceProcessor } from '../../base/BaseRemittanceProcessor';
 import { TrInvoiceClassifier } from '../../../classifiers/implementations/TrInvoiceClassifier';
+import { PaymentTransformer } from '../../../cleaners/paymentTransformer';
+import { FileIntegrityValidator } from '../../../validators/fileIntegrityValidator';
+import { buildVendorSeriesNotes } from '../../../classifiers/invoiceClassificationRules';
 import { trRegionConfig } from '../../../../config/regions/implementations/tr.config';
-import type { PaymentRecord, ParsingResult } from '../../../../types/regional.types';
+import type { ParsingResult } from '../../../../types/regional.types';
 
+/**
+ * TR remittance processor — PURE EXTRACTION.
+ *
+ * Owns: section discovery and raw field extraction from the worksheet
+ * matrix, keyed by the canonical field keys from `tr.config.ts`.
+ *
+ * Does NOT own: integrity validation (`FileIntegrityValidator`), cleaning/
+ * classification/grouping (`PaymentTransformer`), or classification rules
+ * (`invoiceClassificationRules.ts`). `parse()` orchestrates those owners
+ * in order.
+ */
 export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
-  private classifier: TrInvoiceClassifier;
+  private transformer: PaymentTransformer;
 
   constructor() {
     super();
-    this.classifier = new TrInvoiceClassifier();
+    this.transformer = new PaymentTransformer(new TrInvoiceClassifier());
   }
 
 
@@ -38,34 +52,95 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
 
 
   protected mapPaymentLabel(rawLabel: string): string | null {
-    let label = this.stripAccents(rawLabel);
+    let label = this.normalizeText(rawLabel);
     label = label.replace(/:/g, '').replace(/-/g, ' ');
     
     const mapping = this.getPaymentHeaderMapping();
     for (const [key, canonical] of Object.entries(mapping)) {
       if (label.startsWith(key)) return canonical;
     }
+
+    // Legacy-encoding tolerance: older OFA remittance emails replace
+    // Turkish characters the mail encoding cannot represent with a literal
+    // '?' ("Odeme numaras?:" for "Ödeme numarası:"). A '?' is therefore
+    // "some Turkish character we lost" — treat it as a single-character
+    // wildcard and retry the prefix match, so these labels bind by NAME
+    // instead of falling through to the positional fallback.
+    if (label.includes('?')) {
+      for (const [key, canonical] of Object.entries(mapping)) {
+        if (TrOfaRemittanceProcessor.prefixMatchesWithWildcard(label, key)) {
+          return canonical;
+        }
+      }
+    }
     return null;
+  }
+
+  /**
+   * Prefix match where '?' in the label matches ANY single character of
+   * the key (mojibake substitution from legacy encodings).
+   */
+  private static prefixMatchesWithWildcard(label: string, key: string): boolean {
+    if (label.length < key.length) return false;
+    for (let i = 0; i < key.length; i++) {
+      if (label[i] !== key[i] && label[i] !== '?') return false;
+    }
+    return true;
   }
 
   public parse(fileContent: unknown[][]): ParsingResult {
     const matrix = this.createMatrix(fileContent);
+
+    // Pre-parse integrity gate — owned by the validator (BLOCKING).
+    const integrity = FileIntegrityValidator.validateRemittanceWorksheet(
+      matrix,
+      this.getDisclaimerText(),
+      text => this.normalizeText(text),
+    );
+    if (!integrity.ok) {
+      return { isValid: false, records: [], message: integrity.message, warnings: [] };
+    }
+
     const extractionResult = this.extractRawSections(matrix);
 
     if (!extractionResult.ok) {
+      // Extraction warnings are passed through even on failure — they are
+      // the diagnosis for WHY no sections were extracted.
       return {
         isValid: false,
         records: [],
-        message: extractionResult.msg
+        message: extractionResult.msg,
+        warnings: extractionResult.warnings
       };
     }
 
-    const cleanedRecords = this.cleanAndMapRecords(extractionResult.results);
-    
+    const cleanedRecords = this.transformer.transform(extractionResult.results);
+
+    // Warnings from the extraction pass (skipped sections, positional
+    // label fallbacks) plus the full post-parse validation toolbox.
+    // The parse succeeded — but nothing lossy passes silently.
+    const warnings = [
+      ...extractionResult.warnings,
+      ...FileIntegrityValidator.validatePaymentHeaderFields(cleanedRecords),
+      ...FileIntegrityValidator.validateRowCompleteness(cleanedRecords),
+      ...FileIntegrityValidator.validatePaymentGroupTotals(cleanedRecords),
+      ...FileIntegrityValidator.validateShortagePattern(cleanedRecords),
+      ...FileIntegrityValidator.validateReversalReferences(cleanedRecords),
+      ...FileIntegrityValidator.validateDiscountSymmetry(cleanedRecords),
+      ...FileIntegrityValidator.validateAgingProfile(cleanedRecords),
+      ...FileIntegrityValidator.validateQpdPresence(cleanedRecords),
+      // Vendor series inference visibility (analyst ruling — prefix
+      // demotion): whether the C/V prefix demotion is active for this
+      // file, and when it is not, exactly why — an unchanged
+      // classification must be explainable, never silent.
+      ...buildVendorSeriesNotes(cleanedRecords),
+    ];
+
     return {
       isValid: true,
       records: cleanedRecords,
-      message: `Successfully parsed ${cleanedRecords.length} records.`
+      message: `Successfully parsed ${cleanedRecords.length} records.`,
+      warnings
     };
   }
 
@@ -75,7 +150,12 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
     return aoa; 
   }
 
-  private extractRawSections(matrix: unknown[][]): { ok: boolean; results: any[]; msg: string } {
+  private extractRawSections(matrix: unknown[][]): {
+    ok: boolean;
+    results: any[];
+    msg: string;
+    warnings: string[];
+  } {
     const rows = matrix.length;
     const cols = matrix.reduce((max, row) => Math.max(max, (row as any[]).length), 0);
     const getCell = (r: number, c: number) => {
@@ -85,26 +165,13 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
     };
 
     const disclaimer = this.getDisclaimerText();
-    
- 
-    let foundStart = false;
-    for (let i = 0; i < Math.min(40, rows); i++) {
-      const val = getCell(i, 0);
-      if (this.isNonEmpty(val) && this.stripAccents(String(val)).includes(disclaimer)) {
-        foundStart = true;
-        break;
-      }
-    }
 
-    if (!foundStart) {
-      return { 
-        ok: false, 
-        results: [], 
-        msg: 'Invalid format: Oracle EFT disclaimer not found in column A.' 
-      };
-    }
-
+    // File integrity (disclaimer presence) is validated up-front in
+    // `parse()` by FileIntegrityValidator — extraction assumes a valid file.
     const results: any[] = [];
+    // Extraction anomalies: everything that used to be skipped SILENTLY now
+    // emits a warning (row numbers are 1-based, matching what Excel shows).
+    const warnings: string[] = [];
     let currentRow = 0;
 
     while (currentRow < rows) {
@@ -116,7 +183,7 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
       for (let r = currentRow; r < rows && !sectionFound; r++) {
         for (let c = 0; c < cols; c++) {
           const v = getCell(r, c);
-          if (this.isNonEmpty(v) && this.stripAccents(String(v)).includes(disclaimer)) {
+          if (this.isValuePresent(v) && this.normalizeText(String(v)).includes(disclaimer)) {
             headerRowIndex = r;
             headerColIndex = c;
             sectionFound = true;
@@ -133,7 +200,7 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
       
       for (let r = headerRowIndex!; r < rows; r++) {
         const v = getCell(r, headerColIndex!);
-        if (this.isNonEmpty(v) && this.stripAccents(String(v)).includes(paymentMarker)) {
+        if (this.isValuePresent(v) && this.normalizeText(String(v)).includes(paymentMarker)) {
           paymentStartRow = r;
           break;
         }
@@ -144,7 +211,7 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
         outerLoop: for (let r = headerRowIndex!; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             const v = getCell(r, c);
-            if (this.isNonEmpty(v) && this.stripAccents(String(v)).includes(paymentMarker)) {
+            if (this.isValuePresent(v) && this.normalizeText(String(v)).includes(paymentMarker)) {
               paymentStartRow = r;
               break outerLoop;
             }
@@ -153,6 +220,9 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
       }
 
       if (paymentStartRow === null) {
+        warnings.push(
+          `Section starting at row ${headerRowIndex! + 1}: payment block marker not found — section skipped. Its records are NOT included.`,
+        );
         currentRow = headerRowIndex! + 1;
         continue;
       }
@@ -169,16 +239,22 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
         const rowData = (matrix[r] as any[]) || [];
         const startCol = Math.max(0, headerColIndex! - 2);
         
-        let [labelCol, labelVal] = this.findFirstNonEmpty(rowData, startCol);
-        if (labelCol === null) [labelCol, labelVal] = this.findFirstNonEmpty(rowData, 0);
+        let [labelCol, labelVal] = this.findFirstValueInRow(rowData, startCol);
+        if (labelCol === null) [labelCol, labelVal] = this.findFirstValueInRow(rowData, 0);
         
-        if (labelCol === null || !this.isNonEmpty(labelVal)) continue;
+        if (labelCol === null || !this.isValuePresent(labelVal)) continue;
 
         let canonicalKey = this.mapPaymentLabel(String(labelVal));
-        const [, valueVal] = this.findNextNonEmpty(rowData, labelCol);
+        const [, valueVal] = this.findNextValueToRight(rowData, labelCol);
 
         if (!canonicalKey && i < targetHeaders.length) {
+          // Positional fallback (BC-17): an unrecognized label is bound by
+          // ROW POSITION, which silently misassigns values when the block
+          // shape shifts. Kept for tolerance, but no longer silent.
           canonicalKey = targetHeaders[i];
+          warnings.push(
+            `Payment block at row ${r + 1}: unrecognized label "${String(labelVal).trim()}" bound by position to "${canonicalKey}" — verify this payment's field values.`,
+          );
         }
 
         if (canonicalKey && valueVal != null) {
@@ -194,7 +270,7 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
       outerInvoice: for (let r = paymentStartRow; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const v = getCell(r, c);
-          if (this.isNonEmpty(v) && this.stripAccents(String(v)).startsWith(invoiceMarker)) {
+          if (this.isValuePresent(v) && this.normalizeText(String(v)).startsWith(invoiceMarker)) {
             invoiceHeaderRow = r;
             invoiceHeaderCol = c;
             break outerInvoice;
@@ -203,6 +279,9 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
       }
 
       if (invoiceHeaderRow === null) {
+        warnings.push(
+          `Section starting at row ${headerRowIndex! + 1}: invoice table header not found — section skipped. Its records are NOT included.`,
+        );
         currentRow = paymentStartRow + 1;
         continue;
       }
@@ -210,17 +289,20 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
      
       const tableCols: number[] = [];
       for (let c = invoiceHeaderCol!; c < cols && tableCols.length < 6; c++) {
-        if (this.isNonEmpty(getCell(invoiceHeaderRow, c))) tableCols.push(c);
+        if (this.isValuePresent(getCell(invoiceHeaderRow, c))) tableCols.push(c);
       }
       
      
       if (tableCols.length < 6) {
         for (let c = invoiceHeaderCol! + 1; c < cols && tableCols.length < 6; c++) {
-          if (this.isNonEmpty(getCell(invoiceHeaderRow, c))) tableCols.push(c);
+          if (this.isValuePresent(getCell(invoiceHeaderRow, c))) tableCols.push(c);
         }
       }
 
       if (tableCols.length < 6) {
+        warnings.push(
+          `Section starting at row ${headerRowIndex! + 1}: invoice table has fewer than 6 header columns (found ${tableCols.length}) — section skipped. Its records are NOT included.`,
+        );
         currentRow = invoiceHeaderRow + 1;
         continue;
       }
@@ -236,7 +318,7 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
 
         for (let k = 0; k < 6; k++) {
           const v = getCell(currentRowPointer, tableCols[k]);
-          if (this.isNonEmpty(v)) nonEmptyCount++;
+          if (this.isValuePresent(v)) nonEmptyCount++;
           rowVals.push(v == null ? '' : String(v));
         }
 
@@ -256,198 +338,15 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
     }
 
     if (results.length === 0) {
-      return { ok: false, results: [], msg: 'No complete sections (payment + invoices) found.' };
-    }
-
-    return { ok: true, results, msg: '' };
-  }
-
-  private cleanAndMapRecords(rawRows: any[]): PaymentRecord[] {
-    const toStr = (v: any) => (v == null ? '' : String(v).trim());
-
-    const mapped = rawRows.map(rec => {
-      const payee = toStr(rec['Odeme yap?lacak taraf:']);
-      const supplierNumber = toStr(rec['Tedarikci Numaran?z:']);
-      const vendorSite = toStr(rec['Tedarikci site ad?:']);
-      const paymentNumber = toStr(rec['Odeme numaras?:']);
-      const paymentDate = toStr(rec['Odeme tarihi:']);
-      const currency = toStr(rec['Odeme para birimi:']);
-      const paymentAmount = toStr(rec['Odeme tutar?:']);
-      
-      const invoiceNumber = toStr(rec['Fatura Numaras?']);
-      const invoiceDate = toStr(rec['Fatura Tarihi']);
-      const description = toStr(rec['Fatura Ac?klamas?']);
-      const discount = toStr(rec['Uygulanan ?ndirim']) || '0';
-      const paid = toStr(rec['Odenen Tutar']);
-
-      let credit = '';
-      let debit = '';
-
-      if (paid) {
-        if (paid.startsWith('(') && paid.endsWith(')')) {
-          debit = paid.slice(1, -1);
-        } else {
-          credit = paid;
-        }
-      }
-
-      if (!credit && !debit && discount && discount !== '0' && discount !== '0.00') {
-        if (discount.startsWith('-')) {
-          debit = discount.substring(1);
-        } else {
-          credit = discount;
-        }
-      }
-
-      const invoiceType = this.classifier.classify(invoiceNumber, description);
-      const poNumber = this.classifier.extractPurchaseOrder(description) || '';
-
-      let creditNum = this.parseAmount(credit);
-      let debitNum = this.parseAmount(debit);
-
-      if (creditNum < 0) {
-        debitNum += Math.abs(creditNum);
-        creditNum = 0;
-      }
-      if (debitNum < 0) {
-        creditNum += Math.abs(debitNum);
-        debitNum = 0;
-      }
-
       return {
-        payee,
-        supplierNumber,
-        vendorSite,
-        paymentNumber,
-        paymentDate,
-        currency,
-        paymentAmount,
-        invoiceNumber,
-        invoiceDate,
-        poNumber,
-        description,
-        discount,
-        credit: creditNum ? this.formatNumber(creditNum) : '',
-        debit: debitNum ? this.formatNumber(debitNum) : '',
-        invoiceType,
-        __creditNum: creditNum, 
-        __debitNum: debitNum    
+        ok: false,
+        results: [],
+        msg: 'No complete sections (payment + invoices) found.',
+        warnings,
       };
-    });
-
-    // Handle "Giden Havale" grouping
-    const groups = new Map<string, any[]>();
-    const groupOrder: string[] = [];
-
-    mapped.forEach((row, idx) => {
-      const key = `${row.paymentNumber}__${row.paymentDate}`;
-      if (!groups.has(key)) {
-        groups.set(key, []);
-        groupOrder.push(key);
-      }
-      groups.get(key)!.push({ ...row, __originalIdx: idx });
-    });
-
-    const finalOutput: PaymentRecord[] = [];
-
-    groupOrder.forEach(key => {
-      const groupRows = groups.get(key)!;
-      let runningBalance = 0;
-
-      groupRows.forEach(row => {
-        runningBalance += (row.__creditNum || 0);
-        runningBalance -= (row.__debitNum || 0);
-        
-        const cleanRow = { ...row };
-        delete cleanRow.__creditNum;
-        delete cleanRow.__debitNum;
-        delete cleanRow.__originalIdx;
-        
-        cleanRow.balance = this.formatNumber(runningBalance);
-        finalOutput.push(cleanRow);
-      });
-
-      if (groupRows.length > 0) {
-        const ref = groupRows[0];
-        const transferAmount = Math.abs(runningBalance);
-        
-        finalOutput.push({
-          payee: ref.payee,
-          supplierNumber: ref.supplierNumber,
-          vendorSite: ref.vendorSite,
-          paymentNumber: ref.paymentNumber,
-          paymentDate: ref.paymentDate,
-          currency: ref.currency,
-          paymentAmount: ref.paymentAmount,
-          invoiceNumber: `GIDEN HAVALE: ${ref.paymentNumber}`,
-          invoiceDate: ref.paymentDate,
-          poNumber: '',
-          description: `Payment transfer for ${ref.paymentNumber}`,
-          discount: '0',
-          credit: runningBalance > 0 ? '' : this.formatNumber(transferAmount),
-          debit: runningBalance > 0 ? this.formatNumber(transferAmount) : '',
-          invoiceType: 'Giden Havale',
-          balance: this.formatNumber(0)
-        });
-      }
-    });
-
-    return finalOutput;
-  }
-
-  private stripAccents(s: string): string {
-    if (typeof s !== 'string') s = s == null ? '' : String(s);
-    let n = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    n = n.replace(/İ/g, 'I').replace(/ı/g, 'i');
-    n = n.toLowerCase().trim().replace(/\s+/g, ' ');
-    return n;
-  }
-
-  private isNonEmpty(val: any): boolean {
-    if (val === null || val === undefined) return false;
-    if (typeof val === 'number' && Number.isNaN(val)) return false;
-    return String(val).trim() !== '';
-  }
-
-  private findFirstNonEmpty(row: any[], startIdx = 0): [number | null, any] {
-    for (let c = startIdx; c < row.length; c++) {
-      const v = row[c];
-      if (this.isNonEmpty(v)) return [c, v];
     }
-    return [null, null];
+
+    return { ok: true, results, msg: '', warnings };
   }
 
-  private findNextNonEmpty(row: any[], currentIdx: number): [number | null, any] {
-    for (let c = currentIdx + 1; c < row.length; c++) {
-      const v = row[c];
-      if (this.isNonEmpty(v)) return [c, v];
-    }
-    return [null, null];
-  }
-
-  private parseAmount(raw = ''): number {
-    if (!raw) return 0;
-    let clean = String(raw).trim();
-    let isNegative = false;
-    
-    const parenMatch = clean.match(/\(([^)]+)\)/);
-    if (parenMatch) {
-      isNegative = true;
-      clean = parenMatch[1];
-    }
-    
-    clean = clean.replace(/[^\d\-\.,]/g, '');
-    let num = parseFloat(clean.replace(/,/g, ''));
-    
-    if (isNaN(num)) return 0;
-    if (isNegative) num = -Math.abs(num);
-    return num;
-  }
-
-  private formatNumber(num: number): string {
-    return Number(num).toLocaleString('en-US', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    });
-  }
 }

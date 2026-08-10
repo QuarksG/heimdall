@@ -1,182 +1,47 @@
 import { BaseInvoiceClassifier } from '../base/BaseInvoiceClassifier';
+import { classifyByRules, WAREHOUSE_CODES, PO_TOKEN } from '../invoiceClassificationRules';
+import type { ClassificationContext } from '../invoiceClassificationRules';
 import type { InvoiceCategory } from '../../../types/regional.types';
 
+/**
+ * TR invoice classifier — a thin INTERPRETER.
+ *
+ * All recognition knowledge (which conditions produce which invoice type,
+ * and in what precedence) lives as data in
+ * `logic/classifiers/invoiceClassificationRules.ts` (`CLASSIFICATION_RULES`).
+ * Adding or changing a type does not touch this class.
+ *
+ * The only logic owned here is TR-specific PO extraction, built from the
+ * shared `WAREHOUSE_CODES` list (single source — BC-37 fixed).
+ */
 export class TrInvoiceClassifier extends BaseInvoiceClassifier {
-  
+  /**
+   * PO path pattern: the token immediately before a /{warehouse-code}/
+   * segment. The PO token is the shared `PO_TOKEN` structural fact
+   * (8 alphanumerics, digit-first, letter-last — e.g. `48RWLA6F/XSA8/`),
+   * single-sourced with `SALES_PO_PATH_PATTERN` in the classification
+   * rules. The tight shape prevents a stray prefix glued to the PO from
+   * being extracted verbatim.
+   * `WAREHOUSE_CODES` is ordered longest-prefix-first so the alternation
+   * resolves IST2/IST1 before IST.
+   * ⚠ BC-36 (preserved as-built): case-sensitive by design of the source
+   * data — a lowercased description yields no PO.
+   */
+  private static readonly PO_PATTERN = new RegExp(
+    `(?:^|[^A-Z0-9])(${PO_TOKEN})\\/(${WAREHOUSE_CODES.join('|')})\\/`,
+  );
+
   public extractPurchaseOrder(description: string): string {
     if (!description) return '';
-    const poMatch = description.match(/([A-Z0-9]+)\/(IST2|XSA8|XTRA|XTRD|XTRC|IST1|IST|XTRB|PTRA|PSR2|VECR|VEGX|XSA9)\//);
+    const poMatch = description.match(TrInvoiceClassifier.PO_PATTERN);
     return poMatch ? poMatch[1] : '';
   }
 
-  public classify(invoiceNumber: string, description: string): InvoiceCategory {
-    const standardizedInvoice = (invoiceNumber || '').toUpperCase();
-    const standardizedDescription = (description || '').toUpperCase();
-
-    if (standardizedInvoice.startsWith('GIDEN HAVALE:')) {
-      return 'Giden Havale';
-    }
-
-    if (standardizedDescription.includes('FLEXIBLEAGREEMENTS')) {
-      return 'Ticari Isbirligi Faturasi';
-    }
-    
-   if (standardizedDescription.includes('MISSING_ACTUAL_OR_BAN') || standardizedInvoice.includes('MISSING_ACTUAL_OR_BAN')) {
-      return 'MISSING_ACTUAL_OR_BAN';
-    }
-
-    if (this.isShortageClaim(standardizedInvoice)) {
-      return 'Eksik Miktar Kesinti Bildirimi';
-    }
-
-    if (this.isShortageClaimReversal(standardizedInvoice)) {
-      return 'Eksik Miktar Kesinti Bildirimi Ters kayit';
-    }
-
-    if (this.isPriceClaim(standardizedInvoice, standardizedDescription)) {
-      return 'Fiyat Farki Kesinti Bildirimi';
-    }
-
-    if (this.isPriceClaimReversal(standardizedInvoice, standardizedDescription)) {
-      return 'Fiyat Farki Kesinti Bildirimi Ters Kayit';
-    }
-
-    if (standardizedInvoice.includes('IQV')) {
-      return 'Eksik Miktar Kesinti Faturasi';
-    }
-
-    if (standardizedInvoice.includes('AQV')) {
-      return 'Arsiv Eksik Miktar Kesinti Faturasi';
-    }
-
-    if (standardizedInvoice.startsWith('IPV')) {
-      return 'Fiyat Farki Kesinti Faturasi';
-    }
-
-    if (standardizedInvoice.startsWith('APV')) {
-      return 'Arsiv Fiyat Farki Kesinti Faturasi';
-    }
-
-   if (this.isWholesaleInvoice(standardizedDescription) && standardizedInvoice.length === 16) {
-      return 'Toptan Satis Faturasi';
-    }
-
-    if (this.isCoopInvoice(standardizedInvoice, standardizedDescription)) {
-      return 'Ticari Isbirligi Faturasi';
-    }
-
-    if (this.isReturnInvoice(standardizedInvoice, standardizedDescription)) {
-      return 'Iade Edilen Ürünler Için Kesilen Iade Faturasi';
-    }
-
-    if (standardizedInvoice.includes('PROVISION_FOR_AGED_')) {
-      return 'Vadesi Geçmis Alacak Provizyonu';
-    }
-
-    if (standardizedInvoice.includes('PROVISION_FOR_RECEIVABLE') || standardizedInvoice.includes('PROVISION_FOR_ACCRUAL')) {
-      return 'Alacak Provizyonu';
-    }
-
-    if (standardizedDescription.includes('BANK FEE')) {
-      return 'Bank Ücreti';
-    }
-
-    if (standardizedDescription.includes('CRTR') || standardizedInvoice.includes('CREATING PARENT INVOICE VIA TR') || standardizedDescription.includes('CREATING PARENT INVOICE VIA TR')) {
-      return 'CRTR Geri Ödemesi';
-    }
-
-    if (standardizedDescription.includes('DFP FOR AR INVOICE')) {
-      return 'AR Faturasi';
-    }
-
-    if (standardizedDescription.includes('DSPT') && !standardizedInvoice.includes('DSPT')) {
-      return 'Amazon Itrazlari';
-    }
-
-    if (standardizedDescription.includes('QPD RETURN INVOICE')) {
-      return 'QPD';
-    }
-
-    if (standardizedDescription.includes('CLEARING INVOICE AGANIST QPD')) {
-      return 'QPD Ters Kayit';
-    }
-
-    if (standardizedDescription.includes('PAYBACK')) {
-      return 'Itraz Sonucu Geri Odeme';
-    }
-
-    return 'Siniflandirilmamis';
-  }
-
-  private isShortageClaim(invoice: string): boolean {
-    return invoice.endsWith('SC');
-  }
-
-  private isShortageClaimReversal(invoice: string): boolean {
-    return invoice.endsWith('SCR') || invoice.endsWith('SCRI');
-  }
-
-  private isPriceClaim(invoice: string, description: string): boolean {
-    return invoice.endsWith('PC') || description.includes('FOR PPV');
-  }
-
-  private isPriceClaimReversal(invoice: string, description: string): boolean {
-    return invoice.endsWith('PCR') || invoice.endsWith('PCRI') || description.includes('PRICE CLAIM REVERSAL');
-  }
-
-  private isWholesaleInvoice(description: string): boolean {
-    const salesKeywords = ['IST', 'XSA8','IST1', 'IST2', 'XTRB', 'XTRA', 'XTRD', 'PTRA', 'XTRC', 'PSR2', 'VECR', 'VEGX','XSA9'];
-    return salesKeywords.some(keyword => description.includes(keyword));
-  }
-
-  private isCoopInvoice(invoice: string, description: string): boolean {
-    const prefix = invoice.slice(0, 2);
-
-    const hasKeywords = description.includes('FOR TRANSACTION') || description.includes('DSPT');
-    const hasC1Reference = /\bC1[A-Z0-9]{14}\b/.test(description);
-
-    if (hasKeywords && hasC1Reference) {
-        return true;
-    }
-    
-    if (prefix === 'C1' && invoice.slice(-2) === 'R1') return true;
-    if (prefix === 'C1' || prefix === 'C0') return true;
-    
-    const coopKeywords = ['VOLUME INCENTIVE', 'CO-OP', 'AVS', 'SPA'];
-    if (coopKeywords.some(key => description.includes(key))) return true;
-
-    if (invoice.includes('DSPT') && description.includes('C1')) return true;
-
-    const rPattern = invoice.match(/R(\d{1,2})$/);
-    if (rPattern) {
-      const rNumber = parseInt(rPattern[1]);
-      if (rNumber >= 1 && rNumber <= 12) {
-        if (description.includes('C0') || description.includes('C1')) return true;
-      }
-    }
-
-    return false;
-  }
-
-  private isReturnInvoice(invoice: string, description: string): boolean {
-    const prefix = invoice.slice(0, 2);
-    
-    if (prefix === 'V1' || prefix === 'V0') return true;
-
-    const hasKeywords = description.includes('FOR TRANSACTION') || description.includes('DSPT');
-    const hasC1Reference = /\bV[A-Z0-9]{15}\b/.test(description);
-
-    if (hasKeywords && hasC1Reference) {
-        return true;
-    }
-    
-    const rPattern = invoice.match(/R(\d{1,2})$/);
-    if (rPattern && (description.includes('V1') || description.includes('V0'))) return true;
-    
-    if (description.includes('VRET') || description.includes('RETURNS')) return true;
-    
-    if (invoice.includes('DSPT') && (description.includes('V1') || description.includes('V0'))) return true;
-
-    return false;
+  public classify(
+    invoiceNumber: string,
+    description: string,
+    context?: ClassificationContext,
+  ): InvoiceCategory {
+    return classifyByRules(invoiceNumber, description, context);
   }
 }

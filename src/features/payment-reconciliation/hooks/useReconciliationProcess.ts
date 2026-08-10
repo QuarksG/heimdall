@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import * as XLSX from 'xlsx';
-import { TrOfaRemittanceProcessor } from '../logic/processors/implementations/tr/TrOfaRemittanceProcessor.ts';
+import { createRemittanceProcessor } from '../logic/processors/processorFactory';
 import { ExcelExporter } from '../utils/excelExporter';
 import type { PaymentRecord } from '../types/regional.types';
 
@@ -10,9 +10,10 @@ interface UseReconciliationProcessResult {
   isProcessing: boolean;
   error: string | null;
   successMessage: string | null;
-  fileName: string; 
+  /** Non-blocking data-quality findings from the parse (shown to the analyst). */
+  warnings: string[];
   processFile: (file: File) => Promise<void>;
-  exportExcel: () => void;
+  exportExcel: () => Promise<void>;
   clearState: () => void;
 }
 
@@ -21,13 +22,13 @@ export const useReconciliationProcess = (regionCode: string = 'TR'): UseReconcil
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string>('');
+  const [warnings, setWarnings] = useState<string[]>([]);
 
   const processFile = useCallback(async (file: File) => {
     setIsProcessing(true);
     setError(null);
     setSuccessMessage(null);
-    setFileName(file.name);
+    setWarnings([]);
 
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -36,11 +37,23 @@ export const useReconciliationProcess = (regionCode: string = 'TR'): UseReconcil
       const worksheet = workbook.Sheets[firstSheetName];
       const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false }) as unknown[][];
 
-      const processor = new TrOfaRemittanceProcessor();
+      // BC-15: multi-sheet workbooks were silently truncated to sheet 1.
+      // Still only the first sheet is parsed — but no longer silently.
+      const fileWarnings: string[] = [];
+      if (workbook.SheetNames.length > 1) {
+        fileWarnings.push(
+          `Workbook contains ${workbook.SheetNames.length} sheets; only the first ("${firstSheetName}") was processed. If your remittance data is on another sheet, move it to the first sheet and re-upload.`,
+        );
+      }
+
+      // Region dispatch is real: an unsupported region fails loudly here
+      // instead of silently running the TR processor (BC-06).
+      const processor = createRemittanceProcessor(regionCode);
       const result = processor.parse(rawData);
+      setWarnings([...fileWarnings, ...result.warnings]);
 
       if (!result.isValid) {
-        setError(result.message);
+        setError(`Analysis failed: ${result.message}`);
         setParsedData([]);
       } else {
         const recordsWithIds = result.records.map((record: PaymentRecord, index: number) => ({
@@ -52,30 +65,41 @@ export const useReconciliationProcess = (regionCode: string = 'TR'): UseReconcil
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error during file processing';
-      setError(msg);
+      setError(`Analysis failed: ${msg}`);
       setParsedData([]);
     } finally {
       setIsProcessing(false);
     }
   }, [regionCode]);
 
-  const exportExcel = useCallback(() => {
+  const exportExcel = useCallback(async () => {
     if (parsedData.length === 0) return;
-    
+
+    // BC-60: clear any stale error from a previous attempt so a successful
+    // retry does not keep showing an outdated failure.
+    setError(null);
+
     try {
       const exporter = new ExcelExporter();
       const vendorName = parsedData[0]?.vendorSite || 'Vendor';
-      exporter.generateAndDownload(parsedData, vendorName);
+      // The full warning detail ships INSIDE the workbook (Disclaimer
+      // sheet) — the on-screen banner only announces the count.
+      await exporter.generateAndDownload(parsedData, vendorName, warnings);
     } catch (err) {
-      setError('Failed to generate Excel file.');
+      // BC-59/BC-60: export failures are labeled as such (not "Analysis
+      // failed") and the stale green success banner is cleared so the two
+      // never coexist.
+      const msg = err instanceof Error ? err.message : 'Failed to generate Excel file.';
+      setError(`Export failed: ${msg}`);
+      setSuccessMessage(null);
     }
-  }, [parsedData]);
+  }, [parsedData, warnings]);
 
   const clearState = useCallback(() => {
     setParsedData([]);
     setError(null);
     setSuccessMessage(null);
-    setFileName('');
+    setWarnings([]);
   }, []);
 
   return {
@@ -83,7 +107,7 @@ export const useReconciliationProcess = (regionCode: string = 'TR'): UseReconcil
     isProcessing,
     error,
     successMessage,
-    fileName,
+    warnings,
     processFile,
     exportExcel,
     clearState

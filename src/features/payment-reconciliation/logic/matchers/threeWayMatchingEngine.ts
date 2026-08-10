@@ -114,15 +114,14 @@ export class ThreeWayMatchingEngine {
     return `${po || ''}#${amount.toFixed(2)}`;
   }
 
+  /**
+   * The row's single relevant amount: debit if present, else credit.
+   * Amounts are numeric on `PaymentRecord` — no string re-parsing.
+   * NOTE (BC-48): despite the name, no absolute value is taken; correctness
+   * relies on the processor's sign normalization producing non-negatives.
+   */
   private getAbsoluteAmount(record: PaymentRecord): number {
-    const debit = this.parseNumber(record.debit);
-    const credit = this.parseNumber(record.credit);
-    return debit || credit;
-  }
-
-  private parseNumber(val: string): number {
-    const num = parseFloat(String(val ?? '0').replace(/,/g, ''));
-    return isNaN(num) ? 0 : num;
+    return record.debit || record.credit;
   }
 
   private parseDate(dateStr: string): Date | null {

@@ -28,3 +28,8 @@ lerna-debug.log*
 
 # Kiro local settings (MCP, hooks, steering)
 .kiro/
+
+# Real vendor/remittance data must never reach the repo
+docs/*.xlsx
+docs/*.zip
+docs/*_extracted/
