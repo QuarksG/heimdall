@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import type { PaymentRecord } from '../../types/regional.types';
 import type { CashierModelResult } from '../../logic/cashierModel';
+import type { StyledCell } from '../../utils/auditStylePatcher';
 
 /**
  * Vendor Ledger (Tedarikçi Cari Hareketleri) sheet builder — RENDER ONLY.
@@ -65,11 +66,23 @@ export function buildRedGateNotice(tolerance: number): string {
 }
 
 export class VendorLedgerSheet {
-  /** Renders a PRE-COMPUTED cashier-model result. No logic of its own. */
-  public createFromComputed(result: CashierModelResult): XLSX.WorkSheet {
+  /**
+   * Renders a PRE-COMPUTED cashier-model result. No logic of its own.
+   * Also records the styling target cells (approved screenshot: BLACK
+   * header row with white bold centered labels over a clean gridless
+   * table) the exporter's post-serialization style patch consumes —
+   * SheetJS CE cannot write fills/fonts, so the renderer only records
+   * coordinates.
+   */
+  public createFromComputed(
+    result: CashierModelResult,
+  ): { sheet: XLSX.WorkSheet; styleCells: StyledCell[] } {
     if (result.overallGate === 'RED') {
-      // Withheld notice only — zero population rows.
-      return XLSX.utils.aoa_to_sheet([[buildRedGateNotice(result.tolerance)]]);
+      // Withheld notice only — zero population rows; bold the notice.
+      return {
+        sheet: XLSX.utils.aoa_to_sheet([[buildRedGateNotice(result.tolerance)]]),
+        styleCells: [{ row: 0, col: 0, spec: { font: 'bold', fill: 'none' } }],
+      };
     }
 
     const dataRows = result.ledgerRecords.map(record => this.mapRecordToRow(record));
@@ -79,7 +92,37 @@ export class VendorLedgerSheet {
     this.applyNumberFormatting(sheet, dataRows.length);
     this.applyColumnWidths(sheet);
 
-    return sheet;
+    // Approved format: dark-blue header ('Dark Blue, Text 2, Darker 25%')
+    // with white bold centered labels, and thin black borders on EVERY
+    // cell of the table (header + data) — the table keeps its lines with
+    // gridlines off.
+    const allBorders = {
+      top: 'thin',
+      bottom: 'thin',
+      left: 'thin',
+      right: 'thin',
+    } as const;
+    const styleCells: StyledCell[] = VENDOR_LEDGER_HEADERS.map((_, col) => ({
+      row: 0,
+      col,
+      spec: {
+        font: 'whiteBold' as const,
+        fill: 'darkBlue' as const,
+        align: 'center' as const,
+        border: allBorders,
+      },
+    }));
+    for (let row = 1; row <= dataRows.length; row++) {
+      for (let col = 0; col < VENDOR_LEDGER_HEADERS.length; col++) {
+        styleCells.push({
+          row,
+          col,
+          spec: { font: 'default', fill: 'none', border: allBorders },
+        });
+      }
+    }
+
+    return { sheet, styleCells };
   }
 
   /**

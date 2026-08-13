@@ -5,9 +5,10 @@
 // task 7.5), calling ExcelExporter.generateBlob twice yields the IDENTICAL
 // sheet-name sequence, and that sequence always equals the fixed order
 // ['Payment Data', 'HAVALE', 'Filtered Invoices', 'Pivot Fatura Türü',
-// 'PQV-RI', 'Tedarikçi Cari Hareketleri', 'Disclaimer'] — with the three
-// preserved sheets preceding the native pivot host, 'PQV-RI' immediately
-// after it, and the always-present Disclaimer (data-quality) sheet LAST.
+// 'PQV-RI', 'Tedarikçi Cari Hareketleri', 'Audit Trails', 'Disclaimer'] —
+// with the three preserved sheets preceding the native pivot host, 'PQV-RI'
+// immediately after it, the always-present Audit Trails (data-quality)
+// sheet next, and the static Disclaimer (invoice-class explanations) LAST.
 //
 // **Validates: Requirements 1.5, 2.3**
 
@@ -31,6 +32,7 @@ const EXPECTED_SHEET_ORDER = [
   'Pivot Fatura Türü',
   'PQV-RI',
   'Tedarikçi Cari Hareketleri',
+  'Audit Trails',
   'Disclaimer',
 ] as const;
 

@@ -107,7 +107,31 @@ export async function applyAuditStyles(
   targets: AuditStyleTargets,
 ): Promise<Blob> {
   try {
-    return await doPatch(workbookBlob, sheetName, targets);
+    return await doPatch(workbookBlob, sheetName, buildSpecGrid(targets));
+  } catch (err) {
+    if (err instanceof AuditStylePatchError) throw err;
+    const cause = err instanceof Error ? err.message : String(err);
+    fail(cause);
+  }
+}
+
+/**
+ * Generic variant: applies EXPLICIT per-cell style specs to the named
+ * sheet — same styles.xml registry and worksheet surgery as
+ * `applyAuditStyles`, but the caller enumerates the cells directly
+ * (used by the Disclaimer sheet's bilingual layout styling).
+ *
+ * Never returns partial output: on any failure it throws AuditStylePatchError.
+ */
+export async function applyCellStyles(
+  workbookBlob: Blob,
+  sheetName: string,
+  cells: readonly StyledCell[],
+): Promise<Blob> {
+  const grid: SpecGrid = new Map();
+  for (const cell of cells) setSpec(grid, cell.row, cell.col, cell.spec);
+  try {
+    return await doPatch(workbookBlob, sheetName, grid);
   } catch (err) {
     if (err instanceof AuditStylePatchError) throw err;
     const cause = err instanceof Error ? err.message : String(err);
@@ -198,22 +222,31 @@ function resolveSheetPaths(workbookXml: string, workbookRelsXml: string): Map<st
 // Internal model — the per-cell style specification
 // ---------------------------------------------------------------------------
 
-type FontKey = 'default' | 'bold' | 'boldItalic' | 'whiteBold';
-type FillKey = 'none' | 'black' | 'gray';
-type EdgeStyle = 'thin' | 'thick';
+export type FontKey = 'default' | 'bold' | 'boldItalic' | 'whiteBold';
+export type FillKey = 'none' | 'black' | 'gray' | 'purple' | 'darkBlue';
+export type EdgeStyle = 'thin' | 'thick';
 
-interface BorderSpec {
+export interface BorderSpec {
   top?: EdgeStyle;
   bottom?: EdgeStyle;
   left?: EdgeStyle;
   right?: EdgeStyle;
 }
 
-interface CellStyleSpec {
+export interface CellStyleSpec {
   font: FontKey;
   fill: FillKey;
   align?: 'center' | 'right';
+  /** Wrapped, top-aligned text (long bilingual paragraphs). */
+  wrap?: boolean;
   border?: BorderSpec;
+}
+
+/** One explicitly-styled cell (0-based coordinates) for `applyCellStyles`. */
+export interface StyledCell {
+  row: number;
+  col: number;
+  spec: CellStyleSpec;
 }
 
 /** Sparse cell-spec grid keyed by [0-based row] -> [0-based col] -> spec. */
@@ -415,7 +448,13 @@ class StyleRegistry {
     const memoized = this.fillMemo.get(key);
     if (memoized !== undefined) return memoized;
 
-    const rgb = key === 'black' ? 'FF000000' : 'FFD9D9D9';
+    const FILL_RGB: Record<Exclude<FillKey, 'none'>, string> = {
+      black: 'FF000000',
+      gray: 'FFD9D9D9',
+      purple: 'FF7030A0',
+      darkBlue: 'FF17375D', // 'Dark Blue, Text 2, Darker 25%'
+    };
+    const rgb = FILL_RGB[key];
     const xml =
       `<fill><patternFill patternType="solid">` +
       `<fgColor rgb="${rgb}"/><bgColor indexed="64"/>` +
@@ -451,7 +490,7 @@ class StyleRegistry {
    */
   public xfId(spec: CellStyleSpec, numFmtId: number): number {
     const key =
-      `${numFmtId}|${spec.font}|${spec.fill}|${spec.align ?? ''}|` +
+      `${numFmtId}|${spec.font}|${spec.fill}|${spec.align ?? ''}|${spec.wrap ? 'w' : ''}|` +
       `${spec.border ? `${spec.border.left ?? ''},${spec.border.right ?? ''},${spec.border.top ?? ''},${spec.border.bottom ?? ''}` : ''}`;
     const memoized = this.xfMemo.get(key);
     if (memoized !== undefined) return memoized;
@@ -472,8 +511,12 @@ class StyleRegistry {
     if (fillId !== 0) attrs.push('applyFill="1"');
     if (borderId !== 0) attrs.push('applyBorder="1"');
 
-    const xml = spec.align
-      ? `<xf ${attrs.join(' ')} applyAlignment="1"><alignment horizontal="${spec.align}"/></xf>`
+    const alignParts = [
+      spec.align ? `horizontal="${spec.align}"` : '',
+      spec.wrap ? 'vertical="top" wrapText="1"' : '',
+    ].filter(Boolean);
+    const xml = alignParts.length > 0
+      ? `<xf ${attrs.join(' ')} applyAlignment="1"><alignment ${alignParts.join(' ')}/></xf>`
       : `<xf ${attrs.join(' ')}/>`;
     const id = this.baseXfCount + this.newXfs.length;
     this.newXfs.push(xml);
@@ -628,9 +671,8 @@ async function readZipText(zip: JSZip, path: string): Promise<string> {
 async function doPatch(
   workbookBlob: Blob,
   sheetName: string,
-  targets: AuditStyleTargets,
+  specs: SpecGrid,
 ): Promise<Blob> {
-  const specs = buildSpecGrid(targets);
   if (specs.size === 0) {
     // Nothing to style — return the package unchanged.
     return workbookBlob;

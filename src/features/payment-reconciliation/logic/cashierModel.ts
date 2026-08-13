@@ -548,11 +548,14 @@ export function buildAggregationBlock(
  * they never reach an open state, so the state filter drops them.
  * ==================================================================== */
 
-/** PQV/PPV chain states that participate in the identity as open items. */
+/** PQV/PPV chain states that participate as ordinary open items. */
 export const OPEN_ITEM_STATES: ReadonlySet<ChainState> = new Set<ChainState>([
   'Pending Matching - Review',
   'Pending Invoice Cancelation / Stuck - Review',
 ]);
+
+/** PQV state that participates as a distinct excess-shortage family. */
+export const EXCESS_SHORTAGE_STATE: ChainState = 'Excess Credit - Review';
 
 /** The SC/SCR claim-notice pair owned by PQV open chains. */
 export const SC_SCR_TYPES: readonly InvoiceCategory[] = [
@@ -594,8 +597,10 @@ export interface OpenChainRows {
 
 /** Open chains grouped by owning operations module (once per file). */
 export interface OpenChainCollection {
-  /** PQV Open_Item_Chains — SC/SCR rows only (Requirements 3.5, 6.5). */
+  /** PQV ordinary open chains — SC/SCR rows only (Requirements 3.5, 6.5). */
   scScr: OpenChainRows[];
+  /** PQV excess-credit chains — SC/SCR rows shown as their own cashier family. */
+  excessScScr: OpenChainRows[];
   /** PPV Open_Item_Chains — PC/PCR rows only (Requirements 3.6, 6.6). */
   pcPcr: OpenChainRows[];
   /**
@@ -653,10 +658,15 @@ export function collectOpenChains(records: PaymentRecord[]): OpenChainCollection
       return true;
     });
 
-  // PQV/PPV: only the two open states participate; netted (closed)
-  // chains and every other lifecycle state contribute nothing.
+  // PQV/PPV: ordinary open states and PQV excess credits participate
+  // as separate cashier families; netted (closed) chains and every
+  // other lifecycle state contribute nothing.
   const scScr: OpenChainRows[] = pqvResult.chains
     .filter(chain => OPEN_ITEM_STATES.has(chain.state))
+    .map(chain => ({ chain, ownedRows: takeOwnedRows(chain, SC_SCR_TYPES) }));
+
+  const excessScScr: OpenChainRows[] = pqvResult.chains
+    .filter(chain => chain.state === EXCESS_SHORTAGE_STATE)
     .map(chain => ({ chain, ownedRows: takeOwnedRows(chain, SC_SCR_TYPES) }));
 
   const pcPcr: OpenChainRows[] = ppvResult.chains
@@ -686,7 +696,7 @@ export function collectOpenChains(records: PaymentRecord[]): OpenChainCollection
     })
     .map(chain => ({ chain, ownedRows: takeOwnedRows(chain, OPEN_PROVISION_TYPES) }));
 
-  return { scScr, pcPcr, provision, qpdChains: qpdResult.chains };
+  return { scScr, excessScScr, pcPcr, provision, qpdChains: qpdResult.chains };
 }
 
 /* ====================================================================
@@ -1001,8 +1011,10 @@ export function buildBalanceCheck(
   // (cash + indirim) or the identity misses exactly the open claw
   // (observed: 1,166.64 permanent RED on a real file).
   const openScScrRows = openRowsFor(openChains.scScr);
+  const openExcessScScrRows = openRowsFor(openChains.excessScScr);
   const openPcPcrRows = openRowsFor(openChains.pcPcr);
   const openScScrDiscount = discountSumOf(openScScrRows);
+  const openExcessScScrDiscount = discountSumOf(openExcessScScrRows);
   const openPcPcrDiscount = discountSumOf(openPcPcrRows);
 
   // 1 — Sales side: GROSS of its own discount (analyst ruling) —
@@ -1049,6 +1061,20 @@ export function buildBalanceCheck(
     turkishName: 'Açık Eksik Miktar Kalemleri',
     englishName: 'Open Shortage Claim Items',
     cashNet: grossNetOf(openScScrRows),
+  });
+
+  // 10b — Open excess shortage claims: SC/SCR rows of PQV
+  //       'Excess Credit - Review' chains — orphan closures PAYING OUT
+  //       with no deduction withheld in this file. Their own family
+  //       line (analyst instruction): a positive credit released is a
+  //       clawback candidate, not an ordinary open withholding, so it
+  //       must not blend into OPEN_SC_SCR. GROSS, mirroring
+  //       component 10.
+  components.push({
+    key: 'OPEN_EXCESS_SC_SCR',
+    turkishName: 'Açık Fazla Alacak Kalemleri',
+    englishName: 'Open Excess Shortage Claims',
+    cashNet: grossNetOf(openExcessScScrRows),
   });
 
   // 11 — Open PC/PCR: pair rows of PPV open chains only (Requirement
@@ -1172,6 +1198,7 @@ export function buildBalanceCheck(
     salesDiscount +
       ipvDiscount +
       openScScrDiscount +
+      openExcessScScrDiscount +
       openPcPcrDiscount +
       qpdDerivedNet -
       invoicedQpdCashNet,
@@ -1257,7 +1284,12 @@ export function assembleLedger(
   // open provision rows) — the ONLY rows OPEN_ITEMS_ONLY types may
   // contribute (Requirements 5.2, 5.6).
   const openOwnedRows = new Set<PaymentRecord>();
-  for (const group of [openChains.scScr, openChains.pcPcr, openChains.provision]) {
+  for (const group of [
+    openChains.scScr,
+    openChains.excessScScr,
+    openChains.pcPcr,
+    openChains.provision,
+  ]) {
     for (const { ownedRows } of group) {
       for (const row of ownedRows) {
         openOwnedRows.add(row);

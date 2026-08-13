@@ -82,7 +82,7 @@ export const useReconciliationProcess = (regionCode: string = 'TR'): UseReconcil
     try {
       const exporter = new ExcelExporter();
       const vendorName = parsedData[0]?.vendorSite || 'Vendor';
-      // The full warning detail ships INSIDE the workbook (Disclaimer
+      // The full warning detail ships INSIDE the workbook (Audit Trails
       // sheet) — the on-screen banner only announces the count.
       await exporter.generateAndDownload(parsedData, vendorName, warnings);
     } catch (err) {

@@ -7,6 +7,7 @@ import { Amplify } from "aws-amplify";
 import outputs from "../amplify_outputs.json";
 
 import "./styles/variables.css";
+import "./styles/utilities/cards.css";
 
 import App from "./App";
 import { AuthProvider } from "./features/authentication/context/AuthContext";

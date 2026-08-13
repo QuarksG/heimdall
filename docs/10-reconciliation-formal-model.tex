@@ -1,0 +1,693 @@
+% Payment Reconciliation: An Inverse-Function Audit Model
+% Faithful LaTeX rendition of 10-reconciliation-formal-model.md
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs,longtable,tabularx,array}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\cash}{\operatorname{cash}}
+\newcommand{\gross}{\operatorname{gross}}
+\newcommand{\ind}{\operatorname{ind}}
+\newcommand{\roundtwo}{\operatorname{round2}}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
+\newtheorem{axiom}{Model Axiom}
+\newtheorem{ruling}{Audit Ruling}
+\title{Payment Reconciliation:\\An Inverse-Function Audit Model}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A remittance advice is downstream evidence of upstream business events:
+a purchase order was accepted, goods were shipped and counted, an
+e-invoice passed validation, quantities and prices were matched, claims
+were opened or closed, discounts were applied, and a wire was issued.
+This paper defines the inverse function: starting with the remittance
+evidence, it reconstructs those events and their accounting or economic
+effects, then proves whether they explain the \emph{Giden Havale}
+(outgoing wire) to one kuruş. Where one file cannot establish a fact,
+a named review state and analyst action---not a guess---is the correct
+audit result.
+\end{abstract}
+
+\tableofcontents
+
+\section{Executive propositions and evidentiary status}
+The organizing causal chain is:
+\[
+\text{upstream event}\to\text{remittance evidence}\to
+\text{accounting/economic effect}\to\text{reconstructed wire}\to
+\text{verdict or analyst action}.
+\]
+Two propositions govern the paper. First, the \emph{inverse-function
+thesis}: every recognized row is the fingerprint of an upstream event
+and is mapped back to its cause, lifecycle, and monetary effect. Second,
+the \emph{cashier/wire identity}: reconstructed effects must equal the
+actual \emph{Giden Havale}. Equality produces GREEN only if independent
+controls also pass; otherwise the exact residue or review condition is
+named. The model is deterministic: the same admitted workbook evidence
+yields the same classification, reconstruction, and verdict.
+
+Statements have five evidentiary statuses:
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Status} & \textbf{Meaning}\\
+\midrule
+Observed business fact & Evidenced by the source process or remittance population.\\
+Model axiom & Stated accounting interpretation needed to read evidence consistently.\\
+Derived rule & Consequence calculated from observed facts and axioms.\\
+Invariant & Condition required for an internally valid reconstruction.\\
+Analyst decision & Question the remittance cannot settle; the external check is stated.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+Turkish labels are retained with English explanations. Documentary
+trigger tokens such as \texttt{SC}, \texttt{SCR}, \texttt{IQV}, and
+\texttt{QPD} are not translated.
+
+\section{The inverse-function thesis}
+\subsection{Forward process and reverse audit reading}
+
+\textbf{Observed business facts.} Amazon issues a Purchase Order (PO)
+identified by an 8-character alphanumeric token, digit-first and
+letter-last. The vendor accepts it in Vendor Central. Under Turkish tax
+law, the vendor must invoice only goods confirmed as shipped to the
+designated Fulfillment Center, no later than eight days after delivery;
+cancelled or undelivered items must not be invoiced. In practice,
+undelivered goods may nevertheless be invoiced without notice to Amazon.
+
+The FC initially confirms only that goods entered ``Goods Received for
+Counting and Scanning.'' Item-level confirmation follows later. This
+evidence lag causes the quantity-variance process: Amazon pays against
+received goods, not merely invoices, so an unconfirmed portion may be
+withheld while evidence remains pending.
+
+The e-invoice travels vendor $\to$ SOVOS $\to$ GIS $\to$ VPS. SOVOS
+performs GİB signature and regulatory checks; GIS routes to the legal
+entity and business line, here Retail; VPS/FinOps performs commercial
+validation and tax or legislative classification. Failed validation
+receives a defect category and is parked for analyst action.
+
+\textbf{Audit consequence.} A remittance row has passed upstream
+authenticity, regulatory, commercial, and tax controls. This model does
+not re-adjudicate authenticity; it tests arithmetic, references,
+lifecycle, and settlement effect.
+
+Retail payment validation is a three-way match among PO-confirmed goods,
+goods received after counting and scanning, and invoiced quantities and
+prices. A full match schedules payment on the due date (invoice date plus
+payment term). Contractual deductions, principally CCOGS, are taken at
+execution. A partial quantity match creates a Shortage Claim
+(\texttt{SC}) debit and an \texttt{SCR} credit process seeking receipt
+evidence through due date $+60$ days. Matched amounts accumulate for the
+vendor payment cycle, typically seven days. Price mismatches create the
+parallel \texttt{PC}/\texttt{PCR} process for PPV.
+
+\textbf{Observed timing fact.} An SC posts in OFA on the parent invoice's
+due date, not on an FC event date. Every remittance row is a transaction
+that occurred. Therefore row age and claim window are reconstructible
+from the file. The AP side records PQV (SC/SCR) and PPV (PC/PCR); the AR
+side records CCOGS, vendor returns (VRET), advertising deductions,
+non-invoiced provisions, and QPD.
+
+\subsection{Event-to-evidence map}
+\begin{longtable}{@{}p{0.27\textwidth}p{0.30\textwidth}p{0.35\textwidth}@{}}
+\toprule
+\textbf{Upstream event} & \textbf{Fingerprint} & \textbf{Economic reading}\\
+\midrule
+\endhead
+Matched sale on due date & Toptan Satış Faturası; age $=$ term & Gross accepted trade\\
+Confirmation lag & \texttt{...SC}, net & Provisional quantity withholding\\
+Late evidence found & \texttt{...SCR}, gross & Release of withholding\\
+Evidence never found & IQV/AQV & Final quantity variance\\
+Price disagreement & PC/PCR, then IPV/APV & Provisional then final price variance\\
+Contractual program & CCOGS, VRET, ADD, dispute/payback & Final contractual effect\\
+Accrual hygiene & Provision posting and release & Internal accrual; residual matters\\
+Early payment & QPD plus Uygulanan indirim & Discount overlay\\
+Settlement & Giden Havale & Target to be explained\\
+\bottomrule
+\end{longtable}
+
+\section{Remittance evidence and admission controls}
+\subsection{Workbook as stable evidence}
+A worksheet is a finite matrix
+\[
+M\in(V\cup\{\varnothing\})^{R\times C},
+\]
+with each cell at a unique coordinate $(r,c)$. Let $D$ be the issuer's
+invariant disclaimer and let normalization be fixed uppercasing with
+Turkish-aware folding. The documentary anchor is
+\[
+a=(r_0,c_0)=\min_{\text{row-major}}
+\{(r,c):\operatorname{normalize}(M[r,c])\supseteq D\}.
+\]
+Header and invoice evidence are read relative to the anchor. The first
+worksheet is the stated evidence scope; additional sheets require a
+warning and analyst instruction.
+
+\subsection{Admission and degradation rules}
+\begin{itemize}[leftmargin=1.5em]
+\item If $D$ is absent from the first $K$ rows, no amount is read; the
+file is rejected with a bilingual, actionable reason.
+\item A section lacking a payment marker is excluded with its row named;
+other sections remain reviewable.
+\item Header evidence comprises \emph{Ödeme yapılacak taraf, Tedarikçi
+Numaranız, Tedarikçi site adı, Ödeme numarası, Ödeme tarihi, Ödeme para
+birimi, Ödeme tutarı}.
+\item Invoice evidence comprises \emph{Fatura Numarası, Fatura Tarihi,
+Fatura Açıklaması, Uygulanan indirim, Ödenen Tutar, Kalan Tutar}.
+\item Every positional fallback discloses its coordinate and assumed
+meaning; no heuristic or exclusion is silent.
+\item Parenthesized paid amounts are debits; bare amounts are credits.
+Source punctuation uses comma thousands and dot decimals. An unreadable
+amount becomes zero and is named by the completeness control.
+\item Dates admit \texttt{D-MMM-YY(YY)}, a spreadsheet serial in
+$[20000,80000]$, or a last-resort generic date. Failure is null, never
+day zero, and gives a claim an anomaly state.
+\end{itemize}
+\textbf{Invariant---loud degradation.} Every exclusion, heuristic,
+worksheet limitation, unreadable field, or fallback names its coordinate,
+group, or reason.
+\section{Monetary axioms and structural controls}
+\subsection{Money model}
+For each row $x$:
+\[
+\roundtwo(x)=\frac{\lfloor100x\rceil}{100},\qquad
+\cash(x)=\operatorname{credit}(x)-\operatorname{debit}(x),\qquad
+\gross(x)=\cash(x)+\ind(x),
+\]
+\[
+a\approx b\iff |a-b|\le\eps,\qquad \eps=0.01.
+\]
+Here cash is \emph{Alacak $-$ Borç} and $\ind$ is \emph{Uygulanan
+indirim}.
+
+\begin{axiom}[Net-of-discount withholding]
+Cash columns are net of QPD. A discount clawback appears in $\ind(x)$
+with negative sign. Therefore $\gross(x)$ is the vendor-facing economic
+value. The tolerance is one kuruş, a numerical guard rather than a
+business threshold.
+\end{axiom}
+
+\subsection{Age and structural validation}
+\[
+\operatorname{age}(x)=\operatorname{days}
+(\operatorname{invoiceDate}(x),\operatorname{paymentDate}(x)).
+\]
+Sales-row age reveals the payment term. An SC payment date starts its
+claim window. Large age outliers identify delayed settlement; the full
+column is the aged report, and a bimodal profile flags mixed populations.
+The vendor site has eight characters in \texttt{ORG\_CC} form; for
+example \texttt{ZL7LD\_TR} identifies organization ZL7LD in Türkiye.
+The payment number has exactly nine digits. Reversal numbers must extend
+an existing document number. Notification/reversal families must show
+the discount claw/give-back pattern. Rows without amounts are named and
+linked to any simultaneous payment-total mismatch.
+
+\subsection{Independent payment-total control}
+For $g=(\text{payment number},\text{payment date})$, declared total
+$P(g)$, and row-derived net $N(g)$:
+\[
+N(g)=\sum_{x\in g}\cash(x),\qquad
+\bigl|P(g)-|N(g)|\bigr|\le\eps.
+\]
+The header and table are independent evidence. Failure names the group
+and delta. An audit presentation row \emph{Giden Havale} is placed on
+the side opposite $N(g)$ with magnitude $|N(g)|$, so
+\[
+\sum\operatorname{credit}-\sum\operatorname{debit}
+-\operatorname{transfer}(g)=0.
+\]
+It is excluded from the independent control because it is derived from
+$N(g)$.
+
+\section{Classification as an audit ruling}
+\subsection{Total, ordered classification}
+\[
+F:\Sigma^*\times\Sigma^*\times\mathrm{Context}\to T,
+\qquad
+F=t_{i^*},\quad i^*=\arg\min\{\rho_i:\pi_i\text{ holds}\},
+\]
+with visible fallback \emph{Sınıflandırılmamış}. Inputs are uppercased;
+first-match predicates have distinct precedence. Structural and
+referential evidence precedes weak prefixes. Sales numbers have at most
+16 characters; claim documents add a suffix and normally have 18--20.
+Thus a 16-character number is an invoice, never a notice or reversal.
+
+\subsection{Recognition table}
+\begin{longtable}{@{}p{0.46\textwidth}p{0.46\textwidth}@{}}
+\toprule
+\textbf{Turkish type (English)} & \textbf{Documentary trigger}\\
+\midrule
+\endhead
+Giden Havale (outgoing wire) & Synthetic transfer\\
+Ticari İşbirliği Faturası (cooperation) & \texttt{FLEXIBLEAGREEMENTS}\\
+Eksik Miktar Kesinti Bildirimi (shortage notice) & Ends \texttt{SC}, or guarded wording\\
+Eksik Miktar Kesinti Bildirimi Ters Kayıt (reversal) & Ends \texttt{SCR}/\texttt{SCRI}\\
+Fiyat Farkı Kesinti Bildirimi (price notice) & Ends \texttt{PC} or \texttt{FOR PPV}\\
+Fiyat Farkı Kesinti Bildirimi Ters Kayıt & Ends \texttt{PCR}/\texttt{PCRI}, or reversal wording\\
+Eksik Miktar Kesinti Faturası (final shortage) & \texttt{IQV} plus exactly 13 digits\\
+Arşiv Eksik Miktar Kesinti Faturası & \texttt{AQV} plus exactly 13 digits\\
+Fiyat Farkı Kesinti Faturası (final price variance) & \texttt{IPV} plus exactly 13 digits\\
+Arşiv Fiyat Farkı Kesinti Faturası & \texttt{APV} plus exactly 13 digits\\
+İade Faturası (return dispute) & \texttt{FOR TRANSACTION ... V-token ... DSPT}\\
+Toptan Satış Faturası (wholesale sale) & Verified PO path and echo\\
+Ticari İşbirliği Faturası & \texttt{C1}/\texttt{C0} plus evidence\\
+İade Edilen Ürünler (returned products) & \texttt{V1}/\texttt{V0}, VRET, or V-token\\
+Provisions (two types) & \texttt{PROVISION\_FOR\_...}\\
+Bank Ücreti, CRTR, AR Faturası, Amazon İtirazları, QPD, Payback & Dedicated description markers\\
+DROPSHIP & \texttt{DROPSHIP-PO} echo\\
+Sınıflandırılmamış (unclassified) & Visible fallback\\
+\bottomrule
+\end{longtable}
+
+\subsection{Verified sales and series inference}
+A sale is verified iff (i) $\operatorname{len}(n)\le16$; (ii) its
+description contains \texttt{\{PO\}/\{warehouse\}/}, with PO exactly
+eight alphanumerics, digit-first and letter-last, and warehouse in the
+closed code set; and (iii) the path tail is empty or begins with an exact
+echo of $n$.
+
+\begin{ruling}[A1]
+This predicate has no known false positives in the source population and
+is the only evidence strong enough to support file-specific inference.
+\end{ruling}
+
+Let $V$ be verified sales and $V_c$ those beginning with $c$:
+\[
+\operatorname{own}(c)\iff |V|\ge m\ \wedge\ \frac{|V_c|}{|V|}\ge\theta,
+\qquad m=5,\quad\theta=0.33.
+\]
+When owned, bare-prefix cooperation or return rules move from precedence
+13/14 to 25/26 immediately before fallback; evidence branches never
+move. The status is disclosed with counts or the exact reason it is
+inactive. A cited token equal to the row's number is a self-echo, not
+evidence. If a description contains, in order, \texttt{FOR TRANSACTION},
+a V-token consisting of V, one digit, and 14 alphanumerics, then
+\texttt{DSPT}, it is an \emph{İade Faturası} regardless of own prefix,
+at precedence 12.5 above cooperation.
+
+\subsection{Origin determines treatment}
+\begin{longtable}{@{}p{0.28\textwidth}p{0.64\textwidth}@{}}
+\toprule
+\textbf{Category} & \textbf{Cause and treatment}\\
+\midrule
+\endhead
+Giden Havale & Actual settlement and reconstruction target, not an invoice.\\
+Toptan Satış & Legal source of amount owed; contributes gross.\\
+SC/SCR; PC/PCR & Provisional withholding/release; not legal invoices. Pair by reference, never amount; deduction is net and release gross.\\
+IQV/AQV; IPV/APV & Final legal conversions; never net or reverse; archive differs only by channel.\\
+İade & Final returned-goods invoice.\\
+Ticari İşbirliği (CCOGS) & Final negotiated contra-COGS; debit and credit adjustments count.\\
+Provisions & Internal accrual; amount matching is available because references are absent; only residual matters.\\
+Bank Ücreti & Usually self-cancelling fee; residual remains visible.\\
+CRTR/AR/İtiraz/Payback & Final posting or dispute adjustment; always balance-impacting.\\
+QPD/Ters Kayıt & Discount evidence also carried by affected rows' $\ind$.\\
+Sınıflandırılmamış & Visible evidence gap, never an absorber.\\
+MISSING\_ACTUAL\_OR\_BAN & Source data-quality marker; retained and never netted away.\\
+\bottomrule
+\end{longtable}
+\section{Claim lifecycle: rounds, windows, and states}
+\subsection{Grammar, root, and round}
+Quantity and price claims share one lifecycle:
+\[
+\operatorname{number}=B\cdot\operatorname{tail},\qquad
+\operatorname{tail}=((\mathtt{SC}\mid\mathtt{PC})
+(\mathtt{R}\mid\mathtt{RI})?)^+.
+\]
+$B$ is the wholesale root. The root rule removes the longest parseable
+mixed tail because families may interleave, as in \texttt{...SCRPCRI}.
+The terminal token assigns family: \texttt{SC*} to PQV and \texttt{PC*}
+to PPV.
+
+One root may contain independent rounds. For family token $\tau$, a
+deduction $d$ ends in $\tau$; only $d\mathtt{R}$ (RELEASED) or
+$d\mathtt{RI}$ (VALIDATED) closes it, with validation prevailing if both
+exist. Finals are IQV/IPV documents paired by reference. Rounds order by
+deduction-number length. A round is referential, never amount-matched,
+because the discount axiom makes valid cash amounts unequal.
+
+A final carries \texttt{RI|family|seg1|seg2}. Pairing uses \texttt{seg1}
+only; in round one it is the root. \texttt{seg2} is always the root and
+must never pair, or later and sibling finals would attach to round one.
+An unresolved final may attach to the sole validated round still awaiting
+a final; otherwise it is UNATTACHED---Review Final Invoice.
+
+\subsection{Round arithmetic and window}
+For round $r$ and claim rows $C(r)$:
+\begin{align*}
+\operatorname{net}(r)&=\sum_{x\in C(r)}\cash(x),&
+\operatorname{disc}(r)&=\sum_{x\in C(r)}\ind(x),\\
+\operatorname{res}(r)&=\roundtwo(\operatorname{net}(r)+
+\operatorname{disc}(r)),&
+K_1(r)&:\ |\operatorname{res}(r)|\le\eps,\\
+G(r)&=-\sum_{x\in\operatorname{ded}(r)}\gross(x),&
+\operatorname{ipv}(r)&=\sum_{\text{per document}}
+(\operatorname{debit}-\operatorname{credit}),\\
+K_2(r)&:\ |\operatorname{ipv}(r)-G(r)|\le\eps.&&
+\end{align*}
+Installments under one final-document number are allowed. Window terms are
+\[
+\operatorname{due}(r)=\text{own deduction payment date},\quad
+H=\max\text{ parseable payment date},\quad
+ e(r)=\operatorname{days}(\operatorname{due}(r),H),\quad L=63.
+\]
+Thus $L$ is due date $+60$-day policy $+72$-hour creation lag; the
+historical predecessor was invoice date $+33$. Every round uses its own
+deduction date.
+
+\subsection{Lifecycle verdicts}
+\begin{longtable}{@{}p{0.27\textwidth}p{0.27\textwidth}p{0.38\textwidth}@{}}
+\toprule
+\textbf{Shape} & \textbf{Test} & \textbf{Verdict}\\
+\midrule
+\endhead
+VALIDATED with finals & $K_1\wedge K_2$ & Reconciled with Invoice---closed\\
+VALIDATED with finals & $K_1\wedge\operatorname{ipv}<G-\eps$ & Partially Deducted---Pending\\
+VALIDATED with finals & otherwise & Reconciled with Slips---review\\
+VALIDATED, no finals & $K_1$ & Reconciled---Pending Invoice Creation\\
+VALIDATED, no finals & $\neg K_1$ & Anomaly---Check\\
+RELEASED & finals present & Reconciled with Slips; over-deduction risk\\
+RELEASED & $K_1$, no finals & Reconciled with Matching---closed\\
+RELEASED & $\neg K_1$, no finals & Anomaly---Check\\
+OPEN & finals present & Anomaly---Check\\
+OPEN & $e\le L$ & Pending Matching---Review\\
+OPEN & $e>L$ & Pending Invoice Cancelation / Stuck---Review\\
+OPEN & dates unknown & Anomaly---Check\\
+Orphan closure & $\cash>\eps$ & Excess Credit---Review\\
+Orphan closure & otherwise & Reconciled without Shortage/Price Claim\\
+\bottomrule
+\end{longtable}
+A root-level $K_1$ is retained as a cross-check. Disagreement between
+round accounting and root gross netting yields Anomaly---Check.
+
+\subsection{Business scenarios and analyst actions}
+\begin{description}[leftmargin=1.5em,style=nextline]
+\item[S1---Open inside window.] Money is in suspense, not established
+loss, though overdue in the vendor ledger. Inform the vendor that
+matching continues.
+\item[S2---Open beyond window.] A dispute condition. Causes include a
+balance below the remittance trigger while the claim aged, one-sided
+cancellation in SC state contrary to policy, or another unprocessed
+condition. Analyst action is mandatory.
+\item[S3---Converted.] Final IQV/IPV is present and $K_1\wedge K_2$
+holds. This is a lawful confirmed variance, including invoiced goods
+that never arrived.
+\item[S4---Closure without in-file deduction.] A root knock-out needs no
+attention. A positive payout requires a prior-period search. If no prior
+deduction exists, track the excess and expected future clawback.
+\item[S5---QPD-active.] Deduct-net/release-gross inequality is intended;
+apply the QPD algebra rather than cash comparison.
+\end{description}
+
+\subsection{Worked example: FKF multi-round chain}
+Root \texttt{FKF2025000000378} has three PPV rounds:
+\begin{itemize}[leftmargin=1.5em]
+\item Round 1: \texttt{...PC} (3,977.51) $\to$ \texttt{...PCRI}
+$\to$ \texttt{IPV2025000002975} (3,977.51): $K_1\wedge K_2$, closed.
+\item Round 2: \texttt{...SCRPC} (4,896.16) $\to$
+\texttt{...SCRPCRI} $\to$ \texttt{IPV2025000003603} (4,896.16):
+closed; \texttt{RI|PPV|...SCR|...} names round 2 through segment one.
+\item Round 3: \texttt{...SCRSCRPC} (1,745.23). Neither required
+closure nor a third IPV exists; both PCRI rows belong to rounds 1--2.
+At day $77>L$, it is OPEN and Stuck (S2).
+\end{itemize}
+A root-level view could point to a correct IPV while hiding the open
+1,745.23; round segmentation prevents that concealment.
+\section{QPD discount algebra}
+\subsection{Learned-rate overlay}
+QPD economics occur in affected rows' $\ind(x)$, not only QPD-labelled
+rows. Deductions withhold net; reversals return gross. For wholesale root
+$B$, face value $F=\gross(B)$, and first-claim magnitude $G_1$, the rate
+is learned per file:
+\[
+r=\frac{\ind(B)}{F},\qquad
+q_1=rG_1=-\ind(\mathrm{SC}_1),\qquad
+\operatorname{reversal}_1=G_1\ (\text{gross},\ind=0),
+\]
+\[
+\text{rounds }k\ge2:\quad \ind=0,\quad\cash=\gross.
+\]
+
+\subsection{Worked example: AND2026000010288 at 5.00\%}
+\begin{align*}
+\text{root: }&\cash=+168{,}771.11,\quad\ind=+8{,}882.69
+&&\Rightarrow F=177{,}653.80,\\
+\text{SC: }&\cash=-129{,}261.69,\quad\ind=-6{,}803.25
+&&\Rightarrow -G_1=-136{,}064.94,\\
+r&=8{,}882.69/177{,}653.80=5.00\%,\\
+q_1&=5.00\%\times136{,}064.94=6{,}803.25=-\ind(\mathrm{SC}),\\
+\operatorname{reversal}_1&=136{,}064.94\quad\text{gross},\\
+K_1&:\ +6{,}803.25-6{,}803.25=0,\\
+K_2&:\ \operatorname{iqv}(B)=15{,}100.34=G(d_{\mathrm{last}}).
+\end{align*}
+Settlement decomposition:
+\begin{align*}
+F-G_1&=177{,}653.80-136{,}064.94=41{,}588.86,\\
+\operatorname{QPDdoc}(B)&=\sum\ind\text{ over }\{B\}\cup C(B)
+=8{,}882.69-6{,}803.25=2{,}079.44\\
+&=5.00\%\times41{,}588.86,\\
+\operatorname{CASH}(B)&=F-\operatorname{iqv}(B)-
+\operatorname{QPDdoc}(B)\\
+&=177{,}653.80-15{,}100.34-2{,}079.44=160{,}474.02.
+\end{align*}
+Cash equals face value less confirmed shortage and discount retained on
+the paid portion. Every term, including the rate, comes from the file.
+
+\subsection{Settlement verdicts}
+\begin{align*}
+\operatorname{legit}(B)&=\sum\ind\text{ over root and claim rows;
+reversals carry zero},\\
+\operatorname{qpdNet}(B)&=\sum(\operatorname{debit}-
+\operatorname{credit})\text{ over debit QPD documents, grouped by root}.
+\end{align*}
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}p{0.42\textwidth}X@{}}
+\toprule
+\textbf{Condition} & \textbf{Verdict}\\
+\midrule
+$|\operatorname{qpdNet}-\operatorname{legit}|\le\eps$ & QPD Deduction Reconciled with Invoice---closed\\
+More than one document number for one deduction & Duplicate QPD---Review; overrides verification; installments under one number are allowed\\
+Family present, totals disagree & Anomaly---Check\\
+Sales root absent & Review Final Invoice; avoid false mismatch from partial $\sum\ind$\\
+\bottomrule
+\end{tabularx}
+\end{center}
+Credit QPD rows are manual clearing noise: they create no chains or
+attention but remain in conservation. A family with
+$\operatorname{legit}(B)>\eps$ and no debit QPD document is only a
+pending-settlement candidate. Aggregate candidates and verify sales
+references in FinOps; one file cannot prove non-issuance.
+
+\section{The cashier/wire identity}
+The cashier identity translates reconstructed effects into the amount
+that should have been wired and compares it with \emph{Giden Havale}.
+
+\subsection{Layer 1: type aggregation and conservation}
+Per currency and type $t$:
+\[
+\operatorname{Fark}(t)=\sum\operatorname{credit}-
+\sum\operatorname{debit}.
+\]
+\begin{theorem}[Fark conservation]
+\[
+\sum_t\operatorname{Fark}(t)=\sum_x\cash(x).
+\]
+\end{theorem}
+\begin{proof}
+Both sides sum every row exactly once under a total, disjoint
+classification.
+\end{proof}
+Failure invalidates reconstruction. The aggregation reports the minimum
+and maximum parseable sales-invoice date. Types show how much effect
+exists; rounds identify which invoices carry it.
+
+\subsection{Layer 2: reconstructed wire}
+\begin{longtable}{@{}p{0.28\textwidth}p{0.64\textwidth}@{}}
+\toprule
+\textbf{Component} & \textbf{Formula and basis}\\
+\midrule
+\endhead
+SALES & $\sum\gross$ over sales and dropship---gross\\
+DEDUCTION$_t$ & $\sum\cash$ for final-deduction types---cash\\
+DEDUCTION$_{IPV}$ & Exception: $\sum\gross$ over IPV---gross\\
+OPEN\_PROVISION & $\sum\cash$ over open carriers\\
+OPEN\_SC\_SCR & $\sum\gross$ over rows owned by open SC/SCR chains\\
+OPEN\_PC\_PCR & $\sum\gross$ over rows owned by open PC/PCR chains\\
+KEEP\_QPD & $-\sum\ind$ over all currency rows; derived; QPD cash excluded\\
+KEEP$_t$ & $\sum\cash$ for other retained types\\
+UNRESOLVED$_t$ & $\sum\cash$, annotated as conservative inclusion\\
+\bottomrule
+\end{longtable}
+\[
+\operatorname{Computed}=\sum\text{components},\quad
+\operatorname{Actual}=\sum(\operatorname{debit}-\operatorname{credit})
+\text{ over Giden Havale},
+\]
+\[
+\operatorname{Diff}=\operatorname{Computed}-\operatorname{Actual}.
+\]
+Define
+\[
+\text{QPD-mismatch}\iff
+\left|\sum\operatorname{debit}_{QPD}-\sum\ind(\text{all})\right|>\eps,
+\]
+\[
+\operatorname{GATE}=\mathrm{GREEN}\iff
+|\operatorname{Diff}|\le\eps\ \wedge\ \neg\text{QPD-mismatch}.
+\]
+A QPD mismatch forces RED even at zero difference. Only Pending Matching
+and Stuck chains contribute as open chains. Anomaly, Slips, Excess
+Credit, and Review Final Invoice remain unresolved rather than being
+absorbed.
+\subsection{Open-claw lemma}
+\begin{lemma}
+If open claims enter at cash instead of gross,
+\[
+\operatorname{Diff}_{cash}-\operatorname{Diff}_{gross}
+=-\sum\ind(x)\quad\text{over open claim rows}.
+\]
+\end{lemma}
+\begin{proof}
+An open deduction withholds cash net of the QPD claw, while
+$\mathrm{KEEP\_QPD}=-\sum\ind(\text{all})$ already includes that claw.
+Cash basis understates the withholding by the same amount. Gross basis
+restores it, so the effects cancel.
+\end{proof}
+Two observed open rounds carried claws of 549.01 and 617.63. Cash basis
+produced a permanent RED difference of 1,166.64; gross basis closed to
+zero. Gross also equals the vendor-facing \emph{Kalıntı (Brüt)} total.
+
+\subsection{Worked example: a GREEN file}
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Toptan Satış (sales, gross) & $+118{,}375{,}252.78$\\
+Ticari İşbirliği (CCOGS) & $-18{,}129{,}139.81$\\
+İade Faturası (returns) & $-8{,}758{,}891.54$\\
+Fiyat Farkı Kesinti Faturası (IPV) & $-28{,}224.94$\\
+Eksik Miktar Kesinti Faturası (IQV) & $-4{,}451{,}814.63$\\
+AR Faturası & $-401{,}475.39$\\
+Aged provision residual & $-66{,}619.80$\\
+\midrule
+Computed havale & $86{,}539{,}086.67$\\
+Actual Giden Havale & $86{,}539{,}086.67$\\
+Difference & $0.00\Rightarrow\mathrm{GREEN}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Each line is a classified effect on its required cash or gross basis;
+together they explain the wire to one kuruş.
+
+\subsection{Layer 3: ledger closure}
+The ledger admits all target, included, kept, and unresolved rows, plus
+only rows owned by open chains for open-items-only types. Every source
+record appears at most once and remains in source order. Because ledger
+rows carry no discount, GREEN closes to an offset rather than raw zero:
+\begin{align*}
+\operatorname{offset}={}&\operatorname{salesDiscount}
++\operatorname{ipvDiscount}+\operatorname{openScScrDiscount}\\
+&+\operatorname{openPcPcrDiscount}
+-\sum\ind(\text{all})-\cash(\text{QPD rows}).
+\end{align*}
+\begin{theorem}[Ledger closure]
+\[
+\mathrm{GREEN}\Rightarrow
+\sum(\mathrm{Borç}-\mathrm{Alacak})\text{ over ledger}
+\approx\operatorname{offset}.
+\]
+\end{theorem}
+Failure invalidates the claimed GREEN result.
+
+\section{Audit invariants}
+\begin{description}[leftmargin=1.5em,style=nextline]
+\item[I1---Determinism.] Every classification, derivation, and verdict is
+a pure function of admitted workbook evidence.
+\item[I2---Conservation.] No owned row vanishes; every row belongs to one
+chain; chain nets reproduce type totals; unpairable documents are flagged.
+\item[I3---Row uniqueness.] No record is counted twice across identity,
+open items, or ledger.
+\item[I4---Explained or flagged.] Every row is closed, open inside its
+window, or in a named review/anomaly state. Sınıflandırılmamış is a flag,
+not an absorber.
+\item[I5---Loud degradation.] Every lossy or heuristic evidence step
+names its coordinate, group, or reason.
+\end{description}
+A numerically balancing file is not auditable if conservation,
+uniqueness, classification visibility, or QPD consistency fails.
+
+\section{Refusal boundaries and analyst decisions}
+\begin{longtable}{@{}p{0.18\textwidth}p{0.37\textwidth}p{0.37\textwidth}@{}}
+\toprule
+\textbf{Boundary} & \textbf{Undecidable from one file} & \textbf{Required result}\\
+\midrule
+\endhead
+B1 Cross-period & Earlier deduction for orphan closure or chain for unattached final & Prior-period review; never guess\\
+B2 Pending QPD & Whether an absent document was never issued & Candidate list for FinOps verification\\
+B3 Provision carrier & Which tied row carries a residual & List all; analyst selects\\
+B4 Manual QPD & Whether invoiced QPD cash is authoritative & Exclude from identity; disagreement forces RED\\
+\bottomrule
+\end{longtable}
+Refusal is a correct result: no confident fact may depend on unseen data.
+
+\section{Recorded constants and rulings}
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Value} & \textbf{Ruling}\\
+\midrule
+$\eps=0.01$ & One kuruş; numerical tolerance, not business value\\
+$L=63$ & Due date $+60$ days $+72$ hours; predecessor: invoice date $+33$\\
+$\theta=0.33$ & Owned-series share among verified sales\\
+$m=5$ & Minimum verified-sales sample\\
+16 & Sales-number ceiling; claims normally 18--20\\
+8 & PO length, digit-first and letter-last\\
+8 & Vendor-site length in \texttt{ORG\_CC} form\\
+9 & Payment-number digit count\\
+\bottomrule
+\end{tabularx}
+\end{center}
+Each constant is a separately reviewable business ruling; changing one
+requires an explicit one-number policy decision.
+
+\section{End-to-end audit conclusion}
+\begin{center}
+\begin{minipage}{0.94\textwidth}
+\small
+PO issued $\to$ accepted $\to$ goods shipped $\to$ FC counting and lag
+$\to$ e-invoice $\to$ SOVOS $\to$ GIS $\to$ VPS $\to$ three-way match
+$\to$ matched portion paid / variance withheld $\to$ evidence sought
+$\to$ release or final conversion $\to$ OFA settlement $\to$
+\textbf{remittance evidence}.
+
+Remittance evidence $\to$ admission and anchor controls $\to$ money/date
+normalization $\to$ independent total check $\to$ total classification
+$\to$ referenced rounds and verdicts $\to$ QPD overlay $\to$
+cashier/wire identity $\to$ ledger closure.
+
+\textbf{GREEN:} actual wire explained to one kuruş; closed chains form
+the audit trail. \textbf{RED:} exact residue or independent control
+failure is named. \textbf{Always:} the worklist identifies open items,
+days in window, excess credits, anomalies, cross-period questions, and
+refusals.
+\end{minipage}
+\end{center}
+
+This is the inverse function in full: observed evidence is traced to
+business cause, translated into accounting effect, carried into the
+reconstructed wire, and resolved as a controlled verdict or a precise
+analyst action.
+
+\end{document}

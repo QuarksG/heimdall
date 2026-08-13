@@ -24,7 +24,7 @@ import type { PaymentRecord, InvoiceCategory } from '../../types/regional.types'
 // Fixtures
 // ---------------------------------------------------------------------------
 
-/** The fixed seven-sheet order the exporter emits (Requirements 1.5, 2.3). */
+/** The fixed eight-sheet order the exporter emits (Requirements 1.5, 2.3). */
 const FIXED_SHEET_ORDER = [
   'Payment Data',
   'HAVALE',
@@ -32,6 +32,7 @@ const FIXED_SHEET_ORDER = [
   'Pivot Fatura Türü',
   'PQV-RI',
   'Tedarikçi Cari Hareketleri',
+  'Audit Trails',
   'Disclaimer',
 ] as const;
 

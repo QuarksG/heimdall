@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 
 /**
- * DISCLAIMER SHEET — the workbook's data-quality page.
+ * AUDIT TRAILS SHEET — the workbook's data-quality page.
  *
  * Every warning produced by the validation toolbox (and the upload-time
  * file checks) is stored here IN FULL, one row per finding. The on-screen
@@ -9,15 +9,18 @@ import * as XLSX from 'xlsx';
  * sheet — the workbook is the single place where the complete detail
  * lives, reviewable and shareable like every other page of the report.
  *
+ * (Formerly named 'Disclaimer' — that name now belongs to the static
+ * invoice-class explanations sheet, `DisclaimerSheet`.)
+ *
  * The sheet is always present so its absence is never ambiguous: with a
  * clean parse it carries an explicit "no findings" row.
  */
 export class DataQualitySheet {
-  public static readonly SHEET_NAME = 'Disclaimer';
+  public static readonly SHEET_NAME = 'Audit Trails';
 
   public create(warnings: string[]): XLSX.WorkSheet {
     const rows: unknown[][] = [
-      ['DATA QUALITY DISCLAIMER'],
+      ['DATA QUALITY AUDIT TRAILS'],
       [
         'Review every finding below against Amazon invoice rules and policies before relying on this report.',
       ],

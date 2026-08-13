@@ -93,16 +93,16 @@ const Recon: React.FC = () => {
         )}
 
         {/* 2b. Data-quality warnings. The FULL detail lives in the
-            workbook's "Disclaimer" sheet — on screen we only announce the
-            count and direct the analyst there. Exception: when the parse
-            FAILED there is no workbook to download, so the detailed list
-            is shown here as the only available diagnostic. */}
+            workbook's "Audit Trails" sheet — on screen we only announce
+            the count and direct the analyst there. Exception: when the
+            parse FAILED there is no workbook to download, so the detailed
+            list is shown here as the only available diagnostic. */}
         {!isProcessing && warnings.length > 0 && (
           <div className="alert alert-warning mt-3" role="alert">
             {hasData ? (
               <>
                 <strong>Data quality: {warnings.length} finding(s) need your attention.</strong>{' '}
-                Download the Excel report and inspect the <strong>"Disclaimer"</strong> sheet
+                Download the Excel report and inspect the <strong>"Audit Trails"</strong> sheet
                 against Amazon invoice rules and policies.
               </>
             ) : (

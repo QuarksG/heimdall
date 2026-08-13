@@ -6,7 +6,7 @@
 // Open items now participate GROSS = Σ(cash + indirim) — the same
 // Kalıntı (Brüt) the Filtered Invoices sheet shows per chain.
 import { describe, it, expect } from 'vitest';
-import { buildBalanceCheck, collectOpenChains } from '../cashierModel';
+import { buildBalanceCheck, collectOpenChains, assembleLedger } from '../cashierModel';
 import type { PaymentRecord, InvoiceCategory } from '../../types/regional.types';
 
 let rowCounter = 0;
@@ -99,5 +99,45 @@ describe('buildBalanceCheck — open items GROSS of clawed discount', () => {
     expect(openScScr?.cashNet).toBeCloseTo(-100, 2); // gross = cash when claw is 0
     expect(check.difference).toBeCloseTo(0, 2);
     expect(check.gate).toBe('GREEN');
+  });
+
+  it('Excess Credit - Review rows form their own Open Excess Shortage Claims component', () => {
+    // Orphan SCR closure PAYING OUT 200 with no SC withheld in this
+    // file → PQV 'Excess Credit - Review'. It must surface as its own
+    // family line (OPEN_EXCESS_SC_SCR), NOT blend into OPEN_SC_SCR,
+    // and its +200 must close the identity: 1000 (sales) + 200 = 1200.
+    const records: PaymentRecord[] = [
+      makeRecord({
+        invoiceType: 'Toptan Satis Faturasi',
+        invoiceNumber: 'SPI2026000000003',
+        credit: 1000,
+      }),
+      makeRecord({
+        invoiceType: 'Eksik Miktar Kesinti Bildirimi Ters kayit',
+        invoiceNumber: 'SEG2026000000009SCR',
+        credit: 200,
+      }),
+      makeRecord({ invoiceType: 'Giden Havale', invoiceNumber: 'GIDEN HAVALE: P3', debit: 1200 }),
+    ];
+
+    const openChains = collectOpenChains(records);
+    const check = buildBalanceCheck('TRY', records, openChains);
+
+    const excess = check.components.find(c => c.key === 'OPEN_EXCESS_SC_SCR');
+    expect(excess?.englishName).toBe('Open Excess Shortage Claims');
+    expect(excess?.cashNet).toBeCloseTo(200, 2);
+
+    // Ordinary open shortage items stay a separate, empty component.
+    const openScScr = check.components.find(c => c.key === 'OPEN_SC_SCR');
+    expect(openScScr?.cashNet).toBeCloseTo(0, 2);
+
+    expect(check.computedHavale).toBeCloseTo(1200, 2);
+    expect(check.actualHavale).toBeCloseTo(1200, 2);
+    expect(check.difference).toBeCloseTo(0, 2);
+    expect(check.gate).toBe('GREEN');
+
+    // The excess SCR row participates in the Layer 3 ledger.
+    const ledger = assembleLedger(records, openChains);
+    expect(ledger.some(r => r.invoiceNumber === 'SEG2026000000009SCR')).toBe(true);
   });
 });

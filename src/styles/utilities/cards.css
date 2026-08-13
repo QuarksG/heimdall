@@ -1,0 +1,63 @@
+/* src/styles/utilities/cards.css
+   GLOBAL CARD UTILITY — TradingView-style visible edge.
+
+   Every card surface in the app (chat cards, recon dashboard cards, tool
+   panels, …) shares one convention: a subtle 1px border all the way
+   around, so the user always sees where the card ends — especially in
+   dark mode, where borderless dark-on-dark cards visually bleed into the
+   page (TradingView reference approved).
+
+   Tokens live in variables.css (--hd-card-*) and flip automatically with
+   [data-bs-theme] on <html>.
+
+   Usage for NEW components:
+     <div class="hd-card">…</div>
+     <div class="hd-card hd-card--hover">…</div>   (interactive cards)
+     <div class="hd-card hd-card--flat">…</div>    (no padding — tables, charts)
+
+   EXISTING card classes are retrofitted at the bottom of this file so
+   the whole app picks the edge up without per-component edits. */
+
+/* ── The utility ── */
+.hd-card {
+  background: var(--hd-card-bg);
+  border: 1px solid var(--hd-card-border);
+  border-radius: var(--hd-card-radius);
+  padding: 16px 20px;
+  transition: border-color 0.15s ease;
+}
+
+/* Interactive cards: the edge brightens on hover (TradingView behavior). */
+.hd-card--hover:hover {
+  border-color: var(--hd-card-border-hover);
+}
+
+/* Edge-to-edge content (charts, tables): keep the edge, drop the padding. */
+.hd-card--flat {
+  padding: 0;
+  overflow: hidden; /* children clip to the rounded corner */
+}
+
+/* ── Retrofit: existing card surfaces get the same visible edge ──
+   Covers the app's current card classes without touching each component:
+   - Bootstrap .card (auth pages, status displays)
+   - recon dashboard: .stat-card / .chart-card / .summary-card / .sap-card
+   - chat: .chat-container
+   - admin panel: .ap-card
+   The border-color rule is what matters; radius/background stay as each
+   component defines them unless it never set a border at all. */
+.card,
+.stat-card,
+.chart-card,
+.summary-card,
+.sap-card,
+.chat-container,
+.ap-card {
+  border: 1px solid var(--hd-card-border);
+}
+
+.stat-card:hover,
+.chart-card:hover,
+.sap-card:hover {
+  border-color: var(--hd-card-border-hover);
+}

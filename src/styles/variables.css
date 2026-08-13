@@ -25,6 +25,12 @@
   --hd-chip-bad-text: #b71c1c;
   --hd-chip-good-bg: #c8e6c9;
   --hd-chip-good-text: #1b5e20;
+
+  /* Card tokens (TradingView-style visible edge — see utilities/cards.css) */
+  --hd-card-bg: #ffffff;
+  --hd-card-border: #e5e7eb;
+  --hd-card-border-hover: #cbd5e1;
+  --hd-card-radius: 14px;
 }
 
 [data-bs-theme="dark"] {
@@ -49,6 +55,12 @@
   --hd-chip-bad-text: #fca5a5;
   --hd-chip-good-bg: rgba(16, 185, 129, 0.22);
   --hd-chip-good-text: #6ee7b7;
+
+  /* Card tokens — dark: the edge must stay visible against the dark page
+     background (TradingView convention: subtle 1px light border). */
+  --hd-card-bg: #1e1a18;
+  --hd-card-border: rgba(255, 255, 255, 0.12);
+  --hd-card-border-hover: rgba(255, 255, 255, 0.24);
 }
 
 /* Safety net: keep the root background dark so no light flashes through
