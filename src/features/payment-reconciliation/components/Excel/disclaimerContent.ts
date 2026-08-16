@@ -428,8 +428,8 @@ export const DISCLAIMER_SECTIONS: readonly DisclaimerSection[] = [
         en: 'Per the agreement active under Vendor Central > Settings > Agreements > Accepted/Rejected > Purchase Terms, Amazon may make your payments before the due date with the corresponding deduction rate applied.',
       },
       {
-        tr: 'Örneğin anlaşmada yer alan ibare 7NET, %2 ise; Amazon, vade tarihinden önceki 7 gün içerisinde faturanızın ödemesini yaptığı takdirde toplam fatura tutarınızdan %2’lik bir indirim alır.',
-        en: 'For example, if the term in the agreement is 7NET, 2%, and Amazon pays your invoice within 7 days before the due date, it takes a 2% discount off your total invoice amount.',
+        tr: 'Örneğin anlaşmada yer alan ibare 7NET, %2 ise; Amazon, vade tarihinden önceki 7 gün içerisinde faturanızın ödemesini yaptığı takdirde toplam ödenen fatura tutarınızdan %2’lik bir indirim alır. Eğer ödeme, belirlenen erken ödeme tarihinden sonra yapılırsa Amazon herhangi bir erken ödeme kesintisi yapmaz.',
+        en: 'For example, if the term in the agreement is 7NET, 2%, and Amazon pays your invoice within 7 days before the due date, it takes a 2% discount off your total paid invoice amount. If the payment is made after the specified early payment date, Amazon does not apply any early payment discount.',
       },
       {
         tr: 'İlgili anlaşmalar gereğince Amazon’un, vade tarihinden önce yapılan ödeme sonucu yaptığı kesinti için tedarikçi firmaya önceden bildirim verme ve ilgili tedarikçi firmadan izin alma sorumluluğu bulunmamaktadır.',

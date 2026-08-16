@@ -13,6 +13,7 @@ import {
   type CashierModelResult,
 } from '../logic/cashierModel';
 import { ThreeWayMatchingEngine } from '../logic/matchers/threeWayMatchingEngine';
+import { computePqvLineage } from '../logic/matchers/pqvLineage';
 import { injectPivotTable, type PivotInjectorConfig } from './pivotInjector';
 import { disableSheetGridlines } from './gridlinePatcher';
 import { applyAuditStyles, applyCellStyles } from './auditStylePatcher';
@@ -183,9 +184,13 @@ export class ExcelExporter {
       this.cashierAuditBuilder.build(cashierResult);
     XLSX.utils.book_append_sheet(workbook, wsPivotHost, 'Pivot Fatura Türü');
 
-    // 5. PQV Reconciliation (Complex Matching)
+    // 5. PQV Reconciliation — side-by-side trial (analyst decision):
+    //    the legacy heuristic matcher's columns stay untouched, and the
+    //    referential RI|PQV lineage columns render next to them so both
+    //    approaches are compared on real files.
     const pqvMatches = this.matcher.matchPqvToSales(records);
-    const wsPqv = this.pqvSheetBuilder.create(pqvMatches);
+    const pqvLineage = computePqvLineage(records);
+    const wsPqv = this.pqvSheetBuilder.create(pqvMatches, pqvLineage);
     XLSX.utils.book_append_sheet(workbook, wsPqv, 'PQV-RI');
 
     // 6. Vendor Ledger (Tedarikçi Cari Hareketleri) — the Layer 3

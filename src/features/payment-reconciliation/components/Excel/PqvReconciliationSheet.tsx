@@ -1,9 +1,23 @@
 import * as XLSX from 'xlsx';
 import type { PqvMatchResult } from '../../logic/matchers/threeWayMatchingEngine';
+import type { PqvCycleInfo } from '../../logic/matchers/pqvLineage';
 
+/**
+ * PQV-RI sheet — SIDE-BY-SIDE TRIAL LAYOUT (analyst decision).
+ *
+ * The legacy RIGHT16 / PO#Amount heuristic columns are UNTOUCHED; the
+ * referential lineage columns (RI|PQV dispute-cycle model, see
+ * `logic/matchers/pqvLineage.ts`) render to their right. Analysts compare
+ * both on real files before the legacy matcher is retired. IQV rows
+ * without an RI|PQV reference show empty lineage columns — exactly the
+ * population where only the heuristic can help.
+ */
 export class PqvReconciliationSheet {
-  public create(matches: PqvMatchResult[]): XLSX.WorkSheet {
-    const displayData = this.mapToDisplay(matches);
+  public create(
+    matches: PqvMatchResult[],
+    lineage?: Map<string, PqvCycleInfo>,
+  ): XLSX.WorkSheet {
+    const displayData = this.mapToDisplay(matches, lineage ?? new Map());
     const sheet = XLSX.utils.json_to_sheet(displayData);
     
     this.applyStyling(sheet, displayData);
@@ -11,9 +25,11 @@ export class PqvReconciliationSheet {
     return sheet;
   }
 
-  private mapToDisplay(matches: PqvMatchResult[]) {
+  private mapToDisplay(matches: PqvMatchResult[], lineage: Map<string, PqvCycleInfo>) {
 
-    return matches.map(m => ({
+    return matches.map(m => {
+      const cycle = lineage.get(m.invoiceNumber.toUpperCase());
+      return {
       'Satır Numarası': m.rowNumber,
       'Ödeme yapılacak taraf': m.payee,
       'Ödeme para birimi': m.currency,
@@ -31,8 +47,21 @@ export class PqvReconciliationSheet {
       'Parent Invoice (RIGHT16)': m.parentInvoiceCandidate,
       'Key2 (PO#Amount)': m.matchKey,
       'Matched Parents From Sales': m.matchedParents,
-      'Worst case Match': m.worstCaseMatches
-    }));
+      'Worst case Match': m.worstCaseMatches,
+      // ---- Lineage trial columns (RI|PQV dispute-cycle model) ----
+      'Origin Root (RI|PQV)': cycle?.originRoot ?? '',
+      'Cycle Doc (RI|PQV)': cycle?.cycleDoc ?? '',
+      'Cycle #': cycle ? `${cycle.cycleIndex}/${cycle.cycleCount}` : '',
+      'Invoice Amount Gross (X)': cycle?.invoiceGross ?? '',
+      'Not Paid via IQV (Y)': cycle?.iqvGross ?? '',
+      'Paid Amount (X−Y)': cycle?.paidAmount ?? '',
+      'Cycle State': cycle?.state ?? '',
+      'Reissue Amount Gate': cycle?.amountGate ?? '',
+      'Lineage Net (Σ X−Y)': cycle?.lineageNet ?? '',
+      'Candidates matched for payment of re-issued RIs': cycle?.counterInvoicesAfterIqv ?? '',
+      'Lineage Alert-Only Recommendation': cycle?.lineageAlert ?? ''
+      };
+    });
   }
 
   private applyStyling(sheet: XLSX.WorkSheet, data: any[]) {
@@ -43,7 +72,14 @@ export class PqvReconciliationSheet {
 
 
     const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
-    const numberHeaders = ['Alacak', 'Borç']; 
+    const numberHeaders = [
+      'Alacak',
+      'Borç',
+      'Invoice Amount Gross (X)',
+      'Not Paid via IQV (Y)',
+      'Paid Amount (X−Y)',
+      'Lineage Net (Σ X−Y)',
+    ]; 
     const colIndices: number[] = [];
 
     headers.forEach((h, i) => {

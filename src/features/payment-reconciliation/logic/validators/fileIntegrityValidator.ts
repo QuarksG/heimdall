@@ -1,3 +1,4 @@
+import * as XLSX from 'xlsx';
 import { DataSanitizer } from '../cleaners/dataSanitizer';
 import type { PaymentRecord } from '../../types/regional.types';
 
@@ -80,6 +81,28 @@ export class FileIntegrityValidator {
   public static readonly AGING_MIN_SAMPLE = 5;
 
   /**
+   * Invoice-table header marker ('Fatura Numarası…', normalized prefix) —
+   * the same anchor the TR extractor uses to find each section's invoice
+   * table; its column IS the invoice-number column.
+   */
+  public static readonly INVOICE_HEADER_MARKER = 'fatura nu';
+
+  /**
+   * A NUMERIC-typed invoice-reference cell at or above this magnitude is
+   * corrupt for our purposes: Excel's General format displays ≥12-digit
+   * numbers in scientific notation (1042025000011276 → "1.04202E+15"),
+   * and beyond 15 significant digits the trailing digits are already
+   * LOST inside the double — unrecoverable regardless of display format.
+   */
+  public static readonly NUMERIC_REFERENCE_LIMIT = 1e11;
+
+  /** Scientific-notation display text ("1.04202E+15", "1,04202E+15"). */
+  public static readonly SCIENTIFIC_NOTATION_PATTERN = /^-?\d(?:[.,]\d+)?E[+-]?\d+$/i;
+
+  /** How many offending cell addresses are listed in the failure message. */
+  private static readonly CELL_TYPE_REPORT_LIMIT = 10;
+
+  /**
    * Pre-parse gate: the normalized disclaimer marker must appear somewhere
    * in the first `DISCLAIMER_SCAN_ROWS` rows (any column).
    *
@@ -113,6 +136,104 @@ export class FileIntegrityValidator {
         `The expected disclaimer text was not found in the first ${FileIntegrityValidator.DISCLAIMER_SCAN_ROWS} rows: ` +
         `"${disclaimerMarker}". ` +
         'Please ensure you have pasted the remittance email directly into Excel and try again.',
+    };
+  }
+
+  /**
+   * Pre-parse gate (BLOCKING): invoice references must be TEXT cells.
+   *
+   * WHY: Excel stores numbers as 64-bit doubles. A pure-numeric reference
+   * like the 16-digit QPD number 1042025000011276 is corrupted the moment
+   * its cell is numeric — General format hands the parser the display
+   * string "1.04202E+15", and past 15 significant digits the trailing
+   * digits are already destroyed INSIDE the file, so no repair is
+   * possible downstream. The file must be fixed at the source (format the
+   * Fatura Numarası column as Text / Metin, re-paste) and re-uploaded.
+   *
+   * DETECTION works on the RAW worksheet (cell objects, not the display
+   * matrix) so it also catches the sneaky case: a Number-formatted cell
+   * showing full-but-wrong digits with no "E+" anywhere. It finds every
+   * invoice-table header cell (normalized prefix `INVOICE_HEADER_MARKER`
+   * — the same anchor extraction uses; remittance emails repeat the
+   * table per payment block), then walks that header's COLUMN downward
+   * until the table ends, flagging:
+   *   • numeric-typed cells (`t === 'n'`) at |value| ≥ NUMERIC_REFERENCE_LIMIT
+   *   • any cell whose display text is scientific notation (covers
+   *     references pasted as already-corrupted TEXT).
+   *
+   * @param sheet     The raw XLSX worksheet (NOT the row matrix — cell
+   *                  types are needed).
+   * @param normalize Text normalization for the header match; defaults to
+   *                  simple lowercasing (sufficient for the ASCII marker).
+   */
+  public static validateInvoiceNumberCellTypes(
+    sheet: XLSX.WorkSheet,
+    normalize: (text: string) => string = text => text.toLowerCase().trim(),
+  ): IntegrityCheckResult {
+    const ref = sheet['!ref'];
+    if (!ref) return { ok: true, message: '' }; // empty sheet — other gates own this
+
+    const range = XLSX.utils.decode_range(ref);
+    const marker = FileIntegrityValidator.INVOICE_HEADER_MARKER;
+
+    const displayOf = (cell: XLSX.CellObject): string =>
+      String(cell.w ?? cell.v ?? '').trim();
+    const isHeader = (cell: XLSX.CellObject | undefined): boolean =>
+      !!cell && normalize(displayOf(cell)).startsWith(marker);
+
+    // 1. Every invoice-table header cell (one per payment section).
+    const headers: Array<{ r: number; c: number }> = [];
+    for (let r = range.s.r; r <= range.e.r; r++) {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        if (isHeader(sheet[XLSX.utils.encode_cell({ r, c })] as XLSX.CellObject)) {
+          headers.push({ r, c });
+        }
+      }
+    }
+
+    // 2. Walk each header's column downward (the invoice-number column of
+    //    that section's table) until the first empty cell or next header.
+    const offenders: string[] = [];
+    for (const { r, c } of headers) {
+      for (let row = r + 1; row <= range.e.r; row++) {
+        const address = XLSX.utils.encode_cell({ r: row, c });
+        const cell = sheet[address] as XLSX.CellObject | undefined;
+        if (!cell || displayOf(cell) === '') break; // table ended
+        if (isHeader(cell)) break; // ran into the next section
+
+        const numericReference =
+          cell.t === 'n' &&
+          Math.abs(Number(cell.v)) >= FileIntegrityValidator.NUMERIC_REFERENCE_LIMIT;
+        const scientificText =
+          FileIntegrityValidator.SCIENTIFIC_NOTATION_PATTERN.test(displayOf(cell));
+
+        if (numericReference || scientificText) {
+          offenders.push(`${address} ("${displayOf(cell)}")`);
+        }
+      }
+    }
+
+    if (offenders.length === 0) return { ok: true, message: '' };
+
+    const limit = FileIntegrityValidator.CELL_TYPE_REPORT_LIMIT;
+    const listed = offenders.slice(0, limit).join(', ');
+    const more =
+      offenders.length > limit ? ` … +${offenders.length - limit} more` : '';
+
+    return {
+      ok: false,
+      message:
+        'DOSYA REDDEDİLDİ — Fatura Numarası sütununda METİN olmayan hücreler bulundu: ' +
+        `${listed}${more}. ` +
+        'Sayı olarak saklanan uzun fatura referansları Excel tarafından bozulur ' +
+        '(örn. 1042025000011276 → 1.04202E+15) ve son haneler dosyanın içinde kaybolur. ' +
+        'Lütfen Fatura Numarası sütununu Metin (Text) olarak biçimlendirip veriyi yeniden ' +
+        'yapıştırın ve dosyayı tekrar yükleyin. / ' +
+        'FILE REJECTED — non-TEXT cells found in the invoice-number column: ' +
+        `${listed}${more}. ` +
+        'Long invoice references stored as numbers are corrupted by Excel ' +
+        '(e.g. 1042025000011276 → 1.04202E+15) and the trailing digits are lost inside the file. ' +
+        'Please format the Fatura Numarası column as Text, re-paste the data and upload again.',
     };
   }
 

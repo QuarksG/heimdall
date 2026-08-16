@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { createRemittanceProcessor } from '../logic/processors/processorFactory';
+import { FileIntegrityValidator } from '../logic/validators/fileIntegrityValidator';
 import { ExcelExporter } from '../utils/excelExporter';
 import type { PaymentRecord } from '../types/regional.types';
 
@@ -35,6 +36,20 @@ export const useReconciliationProcess = (regionCode: string = 'TR'): UseReconcil
       const workbook = XLSX.read(arrayBuffer, { type: 'array' });
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
+
+      // BLOCKING (analyst ruling): invoice references stored as NUMBERS are
+      // corrupted by Excel (1042025000011276 → "1.04202E+15"; past 15
+      // digits the precision is already gone inside the file). This check
+      // needs the RAW worksheet cell types, which only exist before the
+      // matrix conversion below — so the validator is invoked here, not in
+      // the processor. Rejection = no parse, no data, fix at the source.
+      const cellTypeCheck = FileIntegrityValidator.validateInvoiceNumberCellTypes(worksheet);
+      if (!cellTypeCheck.ok) {
+        setError(cellTypeCheck.message);
+        setParsedData([]);
+        return;
+      }
+
       const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false }) as unknown[][];
 
       // BC-15: multi-sheet workbooks were silently truncated to sheet 1.
