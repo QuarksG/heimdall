@@ -110,9 +110,11 @@ const RESOURCES = [
     description: "Download the official e-fatura package with XML schema, sample files, and field definitions.",
   },
   {
-    title: "UBL 2.0 Invoice Example",
-    url: "https://docs.oasis-open.org/ubl/os-UBL-2.0/xml/UBL-Invoice-2.0-Example.xml",
-    description: "OASIS standard UBL 2.0 invoice XML example — reference for understanding invoice structure.",
+    title: "Retail Invoice XML Template",
+    url: "/samples/retail-example-invoice-template.xml",
+    description:
+      "Anonymized UBL-TR 2.1 retail (SATIS) invoice template — replace the {{...}} placeholders with your own values. Amazon customer block is pre-filled.",
+    download: "retail-example-invoice-template.xml",
   },
 ];
 
@@ -213,11 +215,16 @@ const Home: React.FC = () => {
             <a
               key={i}
               href={r.url}
-              target="_blank"
-              rel="noopener noreferrer"
               className="home-resource-card"
+              {...('download' in r && r.download
+                ? { download: r.download } // local file — browser downloads it
+                : { target: '_blank', rel: 'noopener noreferrer' })}
             >
-              <i className="ph-bold ph-arrow-square-out home-resource-icon"></i>
+              <i
+                className={`ph-bold ${
+                  'download' in r && r.download ? 'ph-download-simple' : 'ph-arrow-square-out'
+                } home-resource-icon`}
+              ></i>
               <div>
                 <strong>{r.title}</strong>
                 <p>{r.description}</p>
