@@ -54,10 +54,7 @@ export class PqvReconciliationSheet {
       'Cycle #': cycle ? `${cycle.cycleIndex}/${cycle.cycleCount}` : '',
       'Invoice Amount Gross (X)': cycle?.invoiceGross ?? '',
       'Not Paid via IQV (Y)': cycle?.iqvGross ?? '',
-      'Paid Amount (X−Y)': cycle?.paidAmount ?? '',
       'Cycle State': cycle?.state ?? '',
-      'Reissue Amount Gate': cycle?.amountGate ?? '',
-      'Lineage Net (Σ X−Y)': cycle?.lineageNet ?? '',
       'Candidates matched for payment of re-issued RIs': cycle?.counterInvoicesAfterIqv ?? '',
       'Lineage Alert-Only Recommendation': cycle?.lineageAlert ?? ''
       };
@@ -77,8 +74,6 @@ export class PqvReconciliationSheet {
       'Borç',
       'Invoice Amount Gross (X)',
       'Not Paid via IQV (Y)',
-      'Paid Amount (X−Y)',
-      'Lineage Net (Σ X−Y)',
     ]; 
     const colIndices: number[] = [];
 
