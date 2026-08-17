@@ -27,27 +27,27 @@ export class PqvReconciliationSheet {
 
   private mapToDisplay(matches: PqvMatchResult[], lineage: Map<string, PqvCycleInfo>) {
 
-    return matches.map(m => {
-      const cycle = lineage.get(m.invoiceNumber.toUpperCase());
+    return matches.map(match => {
+      const cycle = lineage.get(match.invoiceNumber.toUpperCase());
       return {
-      'Satır Numarası': m.rowNumber,
-      'Ödeme yapılacak taraf': m.payee,
-      'Ödeme para birimi': m.currency,
-      'Tedarikçi site adı': m.vendorSite,
-      'Ödeme Numarası': m.paymentNumber,
-      'Ödeme tarihi': m.paymentDate,
-      'Fatura Türü': m.invoiceType,
-      'Fatura Numarası': m.invoiceNumber,
-      'Fatura Tarihi': m.invoiceDate,
-      'Yaş (Gün)': m.agingDays ?? '',
-      'PO: Sipariş Numarası': m.poNumber, 
-      'Fatura Açıklaması': m.description,
-      'Alacak': m.credit,
-      'Borç': m.debit,
-      'Parent Invoice (RIGHT16)': m.parentInvoiceCandidate,
-      'Key2 (PO#Amount)': m.matchKey,
-      'Matched Parents From Sales': m.matchedParents,
-      'Worst case Match': m.worstCaseMatches,
+      'Satır Numarası': match.rowNumber,
+      'Ödeme yapılacak taraf': match.payee,
+      'Ödeme para birimi': match.currency,
+      'Tedarikçi site adı': match.vendorSite,
+      'Ödeme Numarası': match.paymentNumber,
+      'Ödeme tarihi': match.paymentDate,
+      'Fatura Türü': match.invoiceType,
+      'Fatura Numarası': match.invoiceNumber,
+      'Fatura Tarihi': match.invoiceDate,
+      'Yaş (Gün)': match.agingDays ?? '',
+      'PO: Sipariş Numarası': match.poNumber, 
+      'Fatura Açıklaması': match.description,
+      'Alacak': match.credit,
+      'Borç': match.debit,
+      'Parent Invoice (RIGHT16)': match.parentInvoiceCandidate,
+      'Key2 (PO#Amount)': match.matchKey,
+      'Matched Parents From Sales': match.matchedParents,
+      'Worst case Match': match.worstCaseMatches,
       // ---- Lineage trial columns (RI|PQV dispute-cycle model) ----
       'Origin Root (RI|PQV)': cycle?.originRoot ?? '',
       'Cycle Doc (RI|PQV)': cycle?.cycleDoc ?? '',

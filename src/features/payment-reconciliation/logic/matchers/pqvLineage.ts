@@ -132,11 +132,11 @@ export function computePqvLineage(records: PaymentRecord[]): Map<string, PqvCycl
   // ---- Sales aggregates per invoice number: gross X and PO ----
   const salesGross = new Map<string, number>();
   const salesPo = new Map<string, string>();
-  for (const r of records) {
-    if (r.invoiceType !== SALES_TYPE) continue;
-    const key = r.invoiceNumber.toUpperCase();
-    salesGross.set(key, round2((salesGross.get(key) ?? 0) + r.credit - r.debit + r.discount));
-    if (!salesPo.get(key) && r.poNumber) salesPo.set(key, r.poNumber);
+  for (const record of records) {
+    if (record.invoiceType !== SALES_TYPE) continue;
+    const key = record.invoiceNumber.toUpperCase();
+    salesGross.set(key, round2((salesGross.get(key) ?? 0) + record.credit - record.debit + record.discount));
+    if (!salesPo.get(key) && record.poNumber) salesPo.set(key, record.poNumber);
   }
 
   // ---- PQV claim chains per root — THE SAME resolution Filtered
@@ -178,9 +178,9 @@ export function computePqvLineage(records: PaymentRecord[]): Map<string, PqvCycl
   const lineages = new Map<string, Map<string, CycleDraft>>(); // origin -> doc -> draft
   const referencedDocs = new Set<string>(); // every seg1/seg2 root seen
 
-  for (const r of records) {
-    if (!(IQV_TYPES as readonly string[]).includes(r.invoiceType)) continue;
-    const match = r.description?.match(REF_PATTERN);
+  for (const record of records) {
+    if (!(IQV_TYPES as readonly string[]).includes(record.invoiceType)) continue;
+    const match = record.description?.match(REF_PATTERN);
     if (!match) continue;
     const cycleDoc = rootOf(match[1]);
     const origin = rootOf(match[2]);
@@ -197,8 +197,8 @@ export function computePqvLineage(records: PaymentRecord[]): Map<string, PqvCycl
       draft = { cycleDoc, clawed: 0, iqvInvoices: new Set<string>() };
       cycles.set(cycleDoc, draft);
     }
-    draft.clawed = round2(draft.clawed + r.debit - r.credit);
-    draft.iqvInvoices.add(r.invoiceNumber.toUpperCase());
+    draft.clawed = round2(draft.clawed + record.debit - record.credit);
+    draft.iqvInvoices.add(record.invoiceNumber.toUpperCase());
   }
 
   // ---- Resolve each lineage into per-cycle infos ----

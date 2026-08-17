@@ -259,8 +259,8 @@ const ReconciliationDashboard: React.FC<DashboardProps> = ({ data }) => {
     let min: Date | null = null;
     let max: Date | null = null;
 
-    for (const r of filteredData) {
-      const d = new Date(r.paymentDate);
+    for (const record of filteredData) {
+      const d = new Date(record.paymentDate);
       if (Number.isNaN(d.getTime())) continue;
       if (!min || d < min) min = d;
       if (!max || d > max) max = d;
@@ -325,8 +325,8 @@ const ReconciliationDashboard: React.FC<DashboardProps> = ({ data }) => {
     // Sales year range label (NO hooks inside hooks)
     let minYear = Number.POSITIVE_INFINITY;
     let maxYear = Number.NEGATIVE_INFINITY;
-    for (const r of salesRecords) {
-      const d = new Date(r.paymentDate);
+    for (const record of salesRecords) {
+      const d = new Date(record.paymentDate);
       if (Number.isNaN(d.getTime())) continue;
       const y = d.getFullYear();
       if (y < minYear) minYear = y;
