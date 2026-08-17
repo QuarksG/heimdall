@@ -32,7 +32,7 @@ export class FilteredInvoicesSheet {
     'Net (Alacak−Borç)',
     'Uygulanan indirim',
     'Kalıntı (Brüt)',
-    'Kesin Fatura (IQV/IPV)',
+    'Kesinti Fatura (IQV/IPV)',
     'Yaş (Gün)',
     'Zincir Belgeleri',
     'Açıklama',
