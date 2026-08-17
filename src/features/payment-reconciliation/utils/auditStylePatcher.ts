@@ -169,14 +169,14 @@ function getAttr(tag: string, name: string): string | undefined {
 
 /** Converts a 0-based column index to an Excel column letter (0 -> 'A'). */
 function colLetter(index: number): string {
-  let n = index + 1;
-  let s = '';
-  while (n > 0) {
-    const rem = (n - 1) % 26;
-    s = String.fromCharCode(65 + rem) + s;
-    n = Math.floor((n - 1) / 26);
+  let remaining = index + 1;
+  let letters = '';
+  while (remaining > 0) {
+    const remainder = (remaining - 1) % 26;
+    letters = String.fromCharCode(65 + remainder) + letters;
+    remaining = Math.floor((remaining - 1) / 26);
   }
-  return s;
+  return letters;
 }
 
 /** Converts an Excel column letter to a 0-based index ('A' -> 0). */

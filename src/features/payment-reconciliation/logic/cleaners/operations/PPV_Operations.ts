@@ -246,8 +246,8 @@ export function runPpvOperations(records: PaymentRecord[]): OperationResult {
   // Conservation: net effect over ALL owned rows (chains partition them).
   const netEffect = round2(
     records
-      .filter(r => PPV_OWNED_TYPES.includes(r.invoiceType))
-      .reduce((sum, r) => sum + r.credit - r.debit, 0),
+      .filter(record => PPV_OWNED_TYPES.includes(record.invoiceType))
+      .reduce((sum, record) => sum + record.credit - record.debit, 0),
   );
 
   return { domain: 'PPV', ownedTypes: PPV_OWNED_TYPES, chains, netEffect };

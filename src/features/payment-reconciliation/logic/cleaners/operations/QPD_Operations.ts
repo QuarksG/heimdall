@@ -143,10 +143,10 @@ export function runQpdOperations(records: PaymentRecord[]): OperationResult {
 
   // ---- Referential verification, parent by parent ----
   docsByParent.forEach((docRows, parent) => {
-    const qpdNet = round2(docRows.reduce((s, r) => s + r.debit - r.credit, 0));
+    const qpdNet = round2(docRows.reduce((sum, record) => sum + record.debit - record.credit, 0));
     const family = familyByParent.get(parent);
     const verifiable = family !== undefined && family.hasSalesRoot;
-    const net = round2(docRows.reduce((s, r) => s + r.credit - r.debit, 0));
+    const net = round2(docRows.reduce((sum, record) => sum + record.credit - record.debit, 0));
     const documentTrail = docRows.map(
       r => `${r.invoiceNumber} (Ödeme No: ${r.paymentNumber})`,
     );
@@ -291,7 +291,7 @@ export function runQpdOperations(records: PaymentRecord[]): OperationResult {
   );
 
   // Conservation: net effect over ALL owned rows.
-  const netEffect = round2(owned.reduce((s, r) => s + r.credit - r.debit, 0));
+  const netEffect = round2(owned.reduce((sum, record) => sum + record.credit - record.debit, 0));
 
   return { domain: 'QPD', ownedTypes: QPD_OWNED_TYPES, chains, netEffect };
 }

@@ -90,7 +90,7 @@ export class FilteredInvoicesSheet {
   private summaryLine(results: OperationResult[]): string {
     return results
       .map(result => {
-        const attention = result.chains.filter(c => c.attention).length;
+        const attention = result.chains.filter(chain => chain.attention).length;
         return `${result.domain}: ${result.chains.length} zincir, ${attention} dikkat, net ${result.netEffect.toFixed(2)}`;
       })
       .join('   |   ');

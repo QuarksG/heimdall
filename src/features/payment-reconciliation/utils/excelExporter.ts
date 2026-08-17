@@ -152,7 +152,7 @@ export class ExcelExporter {
     // Disclaimer (static invoice-class explanations, always last).
 
     // 1. Payment Data Sheet (Main Ledger)
-    const wsPayment = this.paymentSheetBuilder.create(records);
+    const paymentSheet = this.paymentSheetBuilder.create(records);
     // Empty-input fix — DEFENSIVE ONLY: empty input now fails cashier-model
     // validation (EMPTY_INPUT) in step 0, so this path is unreachable in
     // practice. Retained in case validation is ever bypassed: with zero
@@ -160,18 +160,18 @@ export class ExcelExporter {
     // source range unresolvable; writing the header labels into row 1
     // keeps the pivot cache defined over the header row. Non-empty input
     // is untouched.
-    if (records.length === 0 && (!wsPayment['!ref'] || !wsPayment['A1'])) {
-      XLSX.utils.sheet_add_aoa(wsPayment, [[...PAYMENT_DATA_HEADERS]], { origin: 'A1' });
+    if (records.length === 0 && (!paymentSheet['!ref'] || !paymentSheet['A1'])) {
+      XLSX.utils.sheet_add_aoa(paymentSheet, [[...PAYMENT_DATA_HEADERS]], { origin: 'A1' });
     }
-    XLSX.utils.book_append_sheet(workbook, wsPayment, 'Payment Data');
+    XLSX.utils.book_append_sheet(workbook, paymentSheet, 'Payment Data');
 
     // 2. Havale Sheet (Wire Transfer Summary)
-    const wsHavale = this.havaleSheetBuilder.create(records);
-    XLSX.utils.book_append_sheet(workbook, wsHavale, 'HAVALE');
+    const havaleSheet = this.havaleSheetBuilder.create(records);
+    XLSX.utils.book_append_sheet(workbook, havaleSheet, 'HAVALE');
 
     // 3. Filtered Invoices (Accounting View)
-    const wsInvoices = this.invoiceSheetBuilder.create(records);
-    XLSX.utils.book_append_sheet(workbook, wsInvoices, 'Filtered Invoices');
+    const invoicesSheet = this.invoiceSheetBuilder.create(records);
+    XLSX.utils.book_append_sheet(workbook, invoicesSheet, 'Filtered Invoices');
 
     // 4. Pivot host sheet: columns A–D stay empty for the injected native
     //    PivotTable (anchored at A3); the Layer 1 aggregation table and
@@ -180,9 +180,9 @@ export class ExcelExporter {
     //    side (Requirements 4.7, 4.8, 7.5).
     //    The builder also records the styling target coordinates the
     //    post-serialization style patch (step 7c) consumes.
-    const { sheet: wsPivotHost, styleTargets: auditStyleTargets } =
+    const { sheet: pivotHostSheet, styleTargets: auditStyleTargets } =
       this.cashierAuditBuilder.build(cashierResult);
-    XLSX.utils.book_append_sheet(workbook, wsPivotHost, 'Pivot Fatura Türü');
+    XLSX.utils.book_append_sheet(workbook, pivotHostSheet, 'Pivot Fatura Türü');
 
     // 5. PQV Reconciliation — side-by-side trial (analyst decision):
     //    the legacy heuristic matcher's columns stay untouched, and the
@@ -190,8 +190,8 @@ export class ExcelExporter {
     //    approaches are compared on real files.
     const pqvMatches = this.matcher.matchPqvToSales(records);
     const pqvLineage = computePqvLineage(records);
-    const wsPqv = this.pqvSheetBuilder.create(pqvMatches, pqvLineage);
-    XLSX.utils.book_append_sheet(workbook, wsPqv, 'PQV-RI');
+    const pqvSheet = this.pqvSheetBuilder.create(pqvMatches, pqvLineage);
+    XLSX.utils.book_append_sheet(workbook, pqvSheet, 'PQV-RI');
 
     // 6. Vendor Ledger (Tedarikçi Cari Hareketleri) — the Layer 3
     //    row-level ledger, rendered from the PRE-COMPUTED cashier-model
@@ -202,17 +202,17 @@ export class ExcelExporter {
     //    The builder also records the header styling cells (black fill,
     //    white bold — approved screenshot) for the post-serialization
     //    style patch (step 7d).
-    const { sheet: wsVendorLedger, styleCells: ledgerStyleCells } =
+    const { sheet: vendorLedgerSheet, styleCells: ledgerStyleCells } =
       this.vendorLedgerBuilder.createFromComputed(cashierResult);
-    XLSX.utils.book_append_sheet(workbook, wsVendorLedger, 'Tedarikçi Cari Hareketleri');
+    XLSX.utils.book_append_sheet(workbook, vendorLedgerSheet, 'Tedarikçi Cari Hareketleri');
 
     // 6b. Audit Trails sheet — ALWAYS present. Every data-quality
     //     warning from the parse lives here in full; the UI only
     //     announces the count and directs the analyst to this page.
     //     A clean parse writes an explicit "no findings" row so absence of
     //     warnings is stated, never inferred.
-    const wsAuditTrails = this.dataQualityBuilder.create(warnings);
-    XLSX.utils.book_append_sheet(workbook, wsAuditTrails, DataQualitySheet.SHEET_NAME);
+    const auditTrailsSheet = this.dataQualityBuilder.create(warnings);
+    XLSX.utils.book_append_sheet(workbook, auditTrailsSheet, DataQualitySheet.SHEET_NAME);
 
     // 6c. Disclaimer sheet — ALWAYS last, ALWAYS present. The static
     //     'Disclaimer of Reconciliation' reference: one bilingual
@@ -221,9 +221,9 @@ export class ExcelExporter {
     //     records the styling target cells (section-header fills, the
     //     thick TR|EN separator, wrapped text) the post-serialization
     //     style patch (step 7d) consumes.
-    const { sheet: wsDisclaimer, styleCells: disclaimerStyleCells } =
+    const { sheet: disclaimerSheet, styleCells: disclaimerStyleCells } =
       this.disclaimerBuilder.create();
-    XLSX.utils.book_append_sheet(workbook, wsDisclaimer, DisclaimerSheet.SHEET_NAME);
+    XLSX.utils.book_append_sheet(workbook, disclaimerSheet, DisclaimerSheet.SHEET_NAME);
 
     // 7. Serialize and inject the native, refresh-on-load PivotTable.
     //    A PivotInjectionError propagates unchanged and halts the export

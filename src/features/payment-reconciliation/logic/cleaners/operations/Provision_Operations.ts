@@ -88,7 +88,7 @@ export function runProvisionOperations(records: PaymentRecord[]): OperationResul
   const chains: OperationChain[] = [];
 
   PROVISION_FAMILIES.forEach(family => {
-    const familyRows = records.filter(r => r.invoiceType === family);
+    const familyRows = records.filter(record => record.invoiceType === family);
     if (familyRows.length === 0) return;
 
     // x = Σ Borç − Σ Alacak over P
@@ -200,8 +200,8 @@ export function runProvisionOperations(records: PaymentRecord[]): OperationResul
   // Conservation: net effect over ALL owned rows, eliminated families included.
   const netEffect = round2(
     records
-      .filter(r => PROVISION_OWNED_TYPES.includes(r.invoiceType))
-      .reduce((sum, r) => sum + r.credit - r.debit, 0),
+      .filter(record => PROVISION_OWNED_TYPES.includes(record.invoiceType))
+      .reduce((sum, record) => sum + record.credit - record.debit, 0),
   );
 
   return { domain: 'Provision', ownedTypes: PROVISION_OWNED_TYPES, chains, netEffect };

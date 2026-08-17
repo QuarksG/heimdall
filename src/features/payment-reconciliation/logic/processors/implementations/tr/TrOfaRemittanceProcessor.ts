@@ -109,7 +109,7 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
       return {
         isValid: false,
         records: [],
-        message: extractionResult.msg,
+        message: extractionResult.message,
         warnings: extractionResult.warnings
       };
     }
@@ -153,7 +153,7 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
   private extractRawSections(matrix: unknown[][]): {
     ok: boolean;
     results: any[];
-    msg: string;
+    message: string;
     warnings: string[];
   } {
     const rows = matrix.length;
@@ -182,8 +182,8 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
 
       for (let r = currentRow; r < rows && !sectionFound; r++) {
         for (let c = 0; c < cols; c++) {
-          const v = getCell(r, c);
-          if (this.isValuePresent(v) && this.normalizeText(String(v)).includes(disclaimer)) {
+          const cellValue = getCell(r, c);
+          if (this.isValuePresent(cellValue) && this.normalizeText(String(cellValue)).includes(disclaimer)) {
             headerRowIndex = r;
             headerColIndex = c;
             sectionFound = true;
@@ -199,8 +199,8 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
       const paymentMarker = this.getPaymentHeaderText();
       
       for (let r = headerRowIndex!; r < rows; r++) {
-        const v = getCell(r, headerColIndex!);
-        if (this.isValuePresent(v) && this.normalizeText(String(v)).includes(paymentMarker)) {
+        const cellValue = getCell(r, headerColIndex!);
+        if (this.isValuePresent(cellValue) && this.normalizeText(String(cellValue)).includes(paymentMarker)) {
           paymentStartRow = r;
           break;
         }
@@ -210,8 +210,8 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
       if (paymentStartRow === null) {
         outerLoop: for (let r = headerRowIndex!; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
-            const v = getCell(r, c);
-            if (this.isValuePresent(v) && this.normalizeText(String(v)).includes(paymentMarker)) {
+            const cellValue = getCell(r, c);
+            if (this.isValuePresent(cellValue) && this.normalizeText(String(cellValue)).includes(paymentMarker)) {
               paymentStartRow = r;
               break outerLoop;
             }
@@ -269,8 +269,8 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
 
       outerInvoice: for (let r = paymentStartRow; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const v = getCell(r, c);
-          if (this.isValuePresent(v) && this.normalizeText(String(v)).startsWith(invoiceMarker)) {
+          const cellValue = getCell(r, c);
+          if (this.isValuePresent(cellValue) && this.normalizeText(String(cellValue)).startsWith(invoiceMarker)) {
             invoiceHeaderRow = r;
             invoiceHeaderCol = c;
             break outerInvoice;
@@ -317,9 +317,9 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
         let nonEmptyCount = 0;
 
         for (let k = 0; k < 6; k++) {
-          const v = getCell(currentRowPointer, tableCols[k]);
-          if (this.isValuePresent(v)) nonEmptyCount++;
-          rowVals.push(v == null ? '' : String(v));
+          const cellValue = getCell(currentRowPointer, tableCols[k]);
+          if (this.isValuePresent(cellValue)) nonEmptyCount++;
+          rowVals.push(cellValue == null ? '' : String(cellValue));
         }
 
         if (nonEmptyCount === 0) break;
@@ -341,12 +341,12 @@ export class TrOfaRemittanceProcessor extends BaseRemittanceProcessor {
       return {
         ok: false,
         results: [],
-        msg: 'No complete sections (payment + invoices) found.',
+        message: 'No complete sections (payment + invoices) found.',
         warnings,
       };
     }
 
-    return { ok: true, results, msg: '', warnings };
+    return { ok: true, results, message: '', warnings };
   }
 
 }

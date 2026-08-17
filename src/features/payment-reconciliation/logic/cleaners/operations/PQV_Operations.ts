@@ -252,8 +252,8 @@ export function runPqvOperations(
   // Conservation: net effect over ALL owned rows (chains partition them).
   const netEffect = round2(
     records
-      .filter(r => PQV_OWNED_TYPES.includes(r.invoiceType))
-      .reduce((sum, r) => sum + r.credit - r.debit, 0),
+      .filter(record => PQV_OWNED_TYPES.includes(record.invoiceType))
+      .reduce((sum, record) => sum + record.credit - record.debit, 0),
   );
 
   return { domain: 'PQV', ownedTypes: PQV_OWNED_TYPES, chains, netEffect };
@@ -265,8 +265,8 @@ export function runPqvOperations(
  * machine (claimRoundResolver.ts) — see PQV_ROUND_CONFIG.
  */
 function resolveSalesOnly(reference: string, salesRows: PaymentRecord[]): OperationChain {
-  const salesNet = round2(salesRows.reduce((s, r) => s + r.credit - r.debit, 0));
-  const salesDisc = round2(salesRows.reduce((s, r) => s + r.discount, 0));
+  const salesNet = round2(salesRows.reduce((sum, row) => sum + row.credit - row.debit, 0));
+  const salesDisc = round2(salesRows.reduce((sum, row) => sum + row.discount, 0));
   return {
     reference,
     rows: salesRows,

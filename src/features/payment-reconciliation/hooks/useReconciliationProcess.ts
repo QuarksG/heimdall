@@ -79,8 +79,8 @@ export const useReconciliationProcess = (regionCode: string = 'TR'): UseReconcil
         setSuccessMessage(result.message);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error during file processing';
-      setError(`Analysis failed: ${msg}`);
+      const message = err instanceof Error ? err.message : 'Unknown error during file processing';
+      setError(`Analysis failed: ${message}`);
       setParsedData([]);
     } finally {
       setIsProcessing(false);
@@ -104,8 +104,8 @@ export const useReconciliationProcess = (regionCode: string = 'TR'): UseReconcil
       // BC-59/BC-60: export failures are labeled as such (not "Analysis
       // failed") and the stale green success banner is cleared so the two
       // never coexist.
-      const msg = err instanceof Error ? err.message : 'Failed to generate Excel file.';
-      setError(`Export failed: ${msg}`);
+      const message = err instanceof Error ? err.message : 'Failed to generate Excel file.';
+      setError(`Export failed: ${message}`);
       setSuccessMessage(null);
     }
   }, [parsedData, warnings]);

@@ -12,12 +12,12 @@ export class ThreeWayMatchingEngine {
   private readonly AMOUNT_TOLERANCE = 0.8;
 
   public matchPqvToSales(records: PaymentRecord[]): PqvMatchResult[] {
-    const pqvRecords = records.filter(r => 
-      r.invoiceType === 'Eksik Miktar Kesinti Faturasi'
+    const pqvRecords = records.filter(
+      record => record.invoiceType === 'Eksik Miktar Kesinti Faturasi',
     );
-    
-    const salesRecords = records.filter(r => 
-      r.invoiceType === 'Toptan Satis Faturasi'
+
+    const salesRecords = records.filter(
+      record => record.invoiceType === 'Toptan Satis Faturasi',
     );
 
     const salesIndex = this.buildSalesIndex(salesRecords);
@@ -26,7 +26,7 @@ export class ThreeWayMatchingEngine {
     return pqvRecords.map(pqv => {
       const parentId = this.extractParentId(pqv.description);
       const poNumber = pqv.poNumber || parentToPoMap.get(parentId) || '';
-      const amount = this.getAbsoluteAmount(pqv);
+      const amount = this.getRowAmount(pqv);
       const pqvDate = this.parseDate(pqv.invoiceDate);
       
       const minSalesDate = pqvDate ? this.addDays(pqvDate, this.DATE_OFFSET_DAYS) : null;
@@ -63,7 +63,7 @@ export class ThreeWayMatchingEngine {
     return records.map(record => ({
       parentId: this.extractParentId(record.description),
       poNumber: record.poNumber || '',
-      amount: this.getAbsoluteAmount(record),
+      amount: this.getRowAmount(record),
       date: this.parseDate(record.invoiceDate)
     }));
   }
@@ -102,7 +102,7 @@ export class ThreeWayMatchingEngine {
 
         return isAmountMatch && isPoMatch;
       })
-      .map(s => s.parentId)
+      .map(sale => sale.parentId)
       .filter(Boolean);
   }
 
@@ -117,10 +117,11 @@ export class ThreeWayMatchingEngine {
   /**
    * The row's single relevant amount: debit if present, else credit.
    * Amounts are numeric on `PaymentRecord` — no string re-parsing.
-   * NOTE (BC-48): despite the name, no absolute value is taken; correctness
-   * relies on the processor's sign normalization producing non-negatives.
+   * (BC-48: formerly misnamed `getAbsoluteAmount` — no absolute value is
+   * taken; correctness relies on the processor's sign normalization
+   * producing non-negatives.)
    */
-  private getAbsoluteAmount(record: PaymentRecord): number {
+  private getRowAmount(record: PaymentRecord): number {
     return record.debit || record.credit;
   }
 
@@ -142,9 +143,11 @@ export class ThreeWayMatchingEngine {
       return new Date(Date.UTC(year, month, day));
     }
 
-    const d2 = new Date(dateStr);
-    if (!isNaN(d2.getTime())) {
-      return new Date(Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate()));
+    const fallbackDate = new Date(dateStr);
+    if (!isNaN(fallbackDate.getTime())) {
+      return new Date(
+        Date.UTC(fallbackDate.getFullYear(), fallbackDate.getMonth(), fallbackDate.getDate()),
+      );
     }
 
     return null;
