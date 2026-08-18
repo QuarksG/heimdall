@@ -271,16 +271,23 @@ describe('runPqvOperations — mirrored per-round behavior', () => {
       }),
     ]);
 
+    // Terminal-state folding: the released round 1 is an INTERIM event
+    // (re-claimed by round 2) — no row of its own; its documents fold
+    // into the open round's trail.
     const chains = result.chains.filter(c => c.reference === ROOT);
-    expect(chains).toHaveLength(2);
+    expect(chains).toHaveLength(1);
+    expect(chains.some(c => c.state === 'Reconciled with Matching')).toBe(false);
 
-    const closed = chains.find(c => c.actionInvoice === `${ROOT}SCR`);
-    expect(closed?.state).toBe('Reconciled with Matching');
-
-    const open = chains.find(c => c.actionInvoice === `${ROOT}SCRSC`);
-    expect(open?.state).toBe('Pending Invoice Cancelation / Stuck - Review');
-    expect(open?.residual).toBeCloseTo(-42390.44, 2);
-    expect(open?.elapsedDays).toBe(77);
+    const open = chains[0];
+    expect(open.actionInvoice).toBe(`${ROOT}SCRSC`);
+    expect(open.state).toBe('Pending Invoice Cancelation / Stuck - Review');
+    expect(open.residual).toBeCloseTo(-42390.44, 2);
+    expect(open.elapsedDays).toBe(77);
+    expect(open.documentTrail).toContain(`${ROOT}SC`);
+    expect(open.documentTrail).toContain(`${ROOT}SCR`);
+    expect(open.narrative).toContain('released and re-claimed');
+    // Cashier safety: folded records must NOT enter the open chain's rows.
+    expect(open.rows.map(r => r.invoiceNumber)).toEqual([`${ROOT}SCRSC`]);
   });
 
   it('SPI2022000000504 regression: a foreign-referenced IQV must not glue onto a released round', () => {
@@ -333,19 +340,19 @@ describe('runPqvOperations — mirrored per-round behavior', () => {
       }),
     ]);
 
+    // Terminal-state folding: round 1 (cleanly released, no final doc)
+    // is INTERIM — its documents fold into round 2's converted row.
     const chains = result.chains.filter(c => c.reference === SPI);
-    expect(chains).toHaveLength(3);
+    expect(chains).toHaveLength(2);
+    expect(chains.some(c => c.state === 'Reconciled with Matching')).toBe(false);
 
-    // Round 1: cleanly released, NO final document attached to it.
-    const round1 = chains.find(c => c.actionInvoice === `${SPI}SCR`);
-    expect(round1?.state).toBe('Reconciled with Matching');
-    expect(round1?.finalDocNet).toBeUndefined();
-    expect(round1?.residual).toBeCloseTo(0, 2);
-
-    // Round 2: converted, K1 ∧ K2 hold against ITS OWN IQV.
+    // Round 2: converted, K1 ∧ K2 hold against ITS OWN IQV; round 1's
+    // release documents travel in its trail.
     const round2 = chains.find(c => c.actionInvoice === 'IQV2022000006283');
     expect(round2?.state).toBe('Reconciled with Invoice (IQV series invoice issued)');
     expect(round2?.finalDocNet).toBeCloseTo(397484.71, 2);
+    expect(round2?.documentTrail).toContain(`${SPI}SC`);
+    expect(round2?.documentTrail).toContain(`${SPI}SCR`);
 
     // The foreign-referenced IQV surfaces for review, not hidden
     // under a 'Reconciled with Matching' round.

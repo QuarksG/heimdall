@@ -111,10 +111,52 @@ export function resolveClaimChains(
   );
   const chains: OperationChain[] = [];
 
-  segmentation.rounds.forEach(round => {
+  // TERMINAL-STATE FOLDING (spec: claim-chain-terminal-states, analyst
+  // ruling: every emitted row anchors ONE auditable event).
+  // An INTERIM released round (deducted → released → re-claimed in a
+  // later round) is a net-zero bookkeeping echo, not an auditable event:
+  // it gets NO row of its own. Its documents fold into the NEXT emitted
+  // round's document trail and narrative, so 'Reconciled with Matching'
+  // only ever appears on a chain's TERMINAL round — Matching = PAID, and
+  // the action invoice names the release document that ended the cycle.
+  // Converted rounds always keep their rows (each IQV/IPV is its own
+  // auditable event) and open rounds always keep theirs (FKF ruling).
+  // CASHIER SAFETY: folded PaymentRecords are NEVER merged into
+  // `chain.rows` — the cashier model reads open chains' rows, and folded
+  // SC/SCR records would inflate the open-item gross. Documents travel
+  // via `documentTrail` (display only, preferred by the sheet renderer).
+  const roundChains = segmentation.rounds.map(round => {
     const salesTrail = round.ordinal === 1 ? draft.salesRows : [];
-    chains.push(resolveRound(reference, round, salesTrail, horizon, config));
+    return resolveRound(reference, round, salesTrail, horizon, config);
   });
+
+  let foldedDocs: string[] = [];
+  let foldedOrdinals: number[] = [];
+  roundChains.forEach((chain, index) => {
+    const isTerminalRound = index === roundChains.length - 1;
+    if (chain.state === 'Reconciled with Matching' && !isTerminalRound) {
+      foldedDocs.push(...chain.rows.map(row => row.invoiceNumber));
+      foldedOrdinals.push(chain.rounds ?? index + 1);
+      return; // interim release — no row
+    }
+    if (foldedDocs.length > 0) {
+      chain.documentTrail = [
+        ...foldedDocs,
+        ...(chain.documentTrail ?? chain.rows.map(row => row.invoiceNumber)),
+      ];
+      const label =
+        foldedOrdinals.length > 1
+          ? `Rounds ${foldedOrdinals.join(', ')}`
+          : `Round ${foldedOrdinals[0]}`;
+      chain.narrative =
+        `${label} released and re-claimed (documents in this row's trail). ${chain.narrative}`;
+      foldedDocs = [];
+      foldedOrdinals = [];
+    }
+    chains.push(chain);
+  });
+  // The terminal round ALWAYS emits, so no folded documents can remain
+  // here — rounds are ordinal-ordered and only non-terminal rounds fold.
 
   // Orphan closures: reversal/validation without its deduction. Two
   // stories share this shape and are separated by MONEY DIRECTION:
