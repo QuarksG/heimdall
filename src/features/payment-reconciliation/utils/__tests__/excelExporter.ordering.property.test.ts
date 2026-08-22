@@ -127,9 +127,17 @@ const recordArb = fc
  * Small record sets (1..15) — at least 1 record so the pivot source range
  * resolves (empty-input limitation is tracked by task 7.5), small so 100
  * iterations of the double full-pipeline round-trip stay fast.
+ *
+ * PRECONDITION: at least one row carries a non-zero amount — the cashier
+ * model's input validation intentionally rejects all-zero-amount files
+ * (ALL_ZERO_AMOUNTS) before any sheet is built, so such inputs are outside
+ * this property's domain.
  */
 const recordsArb = fc
   .array(recordArb, { minLength: 1, maxLength: 15 })
+  .filter(records =>
+    records.some(r => r.credit !== 0 || r.debit !== 0 || r.discount !== 0),
+  )
   .map(records =>
     records.map((record, index) => ({ ...record, rowNumber: index + 1 })),
   );

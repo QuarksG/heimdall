@@ -15,7 +15,7 @@ const FEATURES = [
     howTo: [
       "Upload one or more .xml or .zip files containing e-fatura XML format invoices.",
       "Select the columns you need from the sidebar header selector (toggle line-item fields for per-line detail).",
-      "Use the search bar to filter records on live.",
+      "Use the search bar to filter records in real time.",
       "Click Download as Excel to export the data to .xlsx.",
     ],
     expects: "Turkish UBL 2.1 e-fatura XML files (or ZIP archives containing them).",
@@ -32,15 +32,15 @@ const FEATURES = [
       "Upload a single XML invoice (or a ZIP with one invoice).",
       "The validator automatically extracts required fields and runs standard AP FinOps checks.",
       "Review the chat-style results for each field and check status.",
-      "Only invoices with all fields passing validation are considered valid however because of updates and changes better to always issue first test invoice.",
+      "Only invoices with all fields passing validation are considered valid. Because standards change over time, we recommend issuing a test invoice first.",
     ],
     expects: "Single e-fatura XML file for Retail",
-    outputs: " Validation report with pass/fail status per field.",
+    outputs: "Validation report with pass/fail status per field.",
   },
   {
     id: "invoice-conversion",
     title: "Invoice Convert",
-    icon: "ph-chart-bar",
+    icon: "ph-file-pdf",
     route: "/invoice-conversion",
     description:
       "Decode, preview, and convert e-fatura invoices to view PDF format.",
@@ -54,31 +54,32 @@ const FEATURES = [
   {
     id: "invoice-validation-df",
     title: "DF Invoice Validator",
-    icon: "ph-chart-bar",
+    icon: "ph-shield-check",
     route: "/invoice-validation/dropship",
     description:
-      "Validation engine built for Amazon Drop-Ship (Fulfilled by Partner) invoices. Checks dropship fields against accepted formats. The standards are subject to change. Any failure in validation should be reported me.",
+      "Validation engine built for Amazon Drop-Ship (Fulfilled by Partner) invoices. Checks dropship fields against accepted formats. The standards are subject to change. Please report any validation failures to the team.",
     howTo: [
       "Upload a drop-ship XML invoice (or ZIP).",
-      "The validator runs DF-specific checks",
+      "The validator runs DF-specific checks.",
       "Review the validation results for each field.",
     ],
-    expects: "Drop-ship e-fatura XML ",
+    expects: "Drop-ship e-fatura XML",
     outputs: "DF-specific validation report with pass/fail per check.",
   },
   {
     id: "payment-reconciliation",
     title: "E-Reconciliation",
-    icon: "ph-chart-bar",
+    icon: "ph-scales",
     route: "/payment-reconciliation",
     description:
       "Reconcile payment remittance files(OFA).",
     howTo: [
       "Upload the Amazon payment remittance .xlsx file.",
       "Download the parsed data as an Excel file for validation.",
+      "Before sharing with the vendor, remove every sheet except Payment Data, HAVALE, and Pivot Fatura Türü — sharing any other sheet is strictly prohibited.",
     ],
-    expects: "Payment remittance text file (tab-delimited format).",
-    outputs: "Filterable payment table + Excel download.",
+    expects: "Amazon payment remittance .xlsx file.",
+    outputs: "Filterable payment table + Excel download. The downloaded file is named SiteCode_Amazon_Payments_TimeStamp. STRICT: share ONLY the Payment Data, HAVALE, and Pivot Fatura Türü sheets with the vendor — all other sheets are strictly for internal use and must never be shared."
   },
   {
     id: "crtr-extraction",
@@ -89,9 +90,9 @@ const FEATURES = [
       "Extract e-invoice data to prepare CRTR reports.",
     howTo: [
       "Upload a ZIP archive containing multiple e-fatura XML files.",
-      "Fill the missing fields",
+      "Fill the missing fields.",
       "Review the output table and make any necessary corrections.",
-      "Download the CRTR report as Excel for submission",
+      "Download the CRTR report as Excel for submission.",
     ],
     expects: "ZIP archive of UBL 2.1 e-fatura XML invoices.",
     outputs: "CRTR summary table + Excel export.",
@@ -130,7 +131,7 @@ const Home: React.FC = () => {
           Welcome{user?.name ? `, ${user.name.split(" ")[0]}` : ""}
         </h1>
         <p className="home-subtitle">
-          <strong>Heimdall</strong> is internal toolkit for Turkish e-fatura processing — parse, validate, convert,
+          <strong>Heimdall</strong> is an internal toolkit for Turkish e-fatura processing — parse, validate, convert,
           reconcile, and extract invoice data across marketplaces.
         </p>
       </section>
@@ -157,7 +158,7 @@ const Home: React.FC = () => {
             <span className="home-step-num">3</span>
             <div>
               <strong>Start Processing</strong>
-              <p>Once approved, you can use unlocked feature by uploading your XML or ZIPed e-fatura XML files.</p>
+              <p>Once approved, you can use the unlocked features by uploading your XML or zipped e-fatura files.</p>
             </div>
           </div>
         </div>
@@ -238,8 +239,8 @@ const Home: React.FC = () => {
       <section className="home-section home-disclosure">
         <h2 className="home-section-title">Privacy & Security</h2>
         <p>
-          Please do not share this tool with external users or share your account with other 3rd parties, as it has not yet been validated for such use cases. We recommend using only officially referenced data sources. 
-          To ensure a smooth experience, do not upload anomalous files to the input fields. It can harm Amazon AWS cloud infrastructure.
+          Please do not share this tool with external users or share your account with other 3rd parties, as it has not yet been validated for such use cases. We recommend using only officially referenced data sources.
+          To ensure a smooth experience, please upload only well-formed, expected file types to the input fields.
         </p>
       </section>
     </div>

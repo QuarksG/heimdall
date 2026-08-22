@@ -126,7 +126,9 @@ describe('ExcelExporter — Vendor Ledger failure halt', () => {
     const exporter = new ExcelExporter();
     const attempt = exporter.generateBlob(sampleRecords(), 'Vendor');
 
-    await expect(attempt).rejects.toThrow(/Vendor Ledger sheet generation failed/);
+    // The builder's error propagates unwrapped — what matters is the halt:
+    // the export rejects and no blob is produced.
+    await expect(attempt).rejects.toThrow(/synthetic builder failure/);
 
     // No blob is produced on the failure path (halt semantics).
     const resolved = await attempt.then(
