@@ -7,6 +7,7 @@ import { getInitialGreeting } from '../utils/messageBuilder';
 
 import { validateInvoiceHeader } from '../validators/headerValidator';
 import { validateAmazonAddress } from '../validators/addressValidator';
+import { validateSupplierDetails } from '../validators/supplierValidator';
 import { validateAmazonTaxDetails } from '../validators/taxValidator';
 import { validatePurchaseOrder } from '../validators/poValidator';
 import { validateAsinDetails } from '../validators/asinValidator';
@@ -188,6 +189,21 @@ const InvoiceControl: React.FC = () => {
           hasErrors = true;
           messageParts.push(
             `<h3 style="color:var(--hd-danger-text);">❌ Adres Doğrulama Hatası</h3>
+             <p>Hata: ${error instanceof Error ? DOMPurify.sanitize(error.message) : 'Bilinmeyen hata'}</p>`
+          );
+        }
+
+        // Supplier (AccountingSupplierParty) mandatory details
+        try {
+          const supplierWarnings = validateSupplierDetails(xmlDoc, converter);
+          if (Array.isArray(supplierWarnings) && supplierWarnings.length > 0) {
+            hasErrors = true;
+            messageParts.push(...supplierWarnings);
+          }
+        } catch (error) {
+          hasErrors = true;
+          messageParts.push(
+            `<h3 style="color:var(--hd-danger-text);">❌ Tedarikçi Bilgileri Doğrulama Hatası</h3>
              <p>Hata: ${error instanceof Error ? DOMPurify.sanitize(error.message) : 'Bilinmeyen hata'}</p>`
           );
         }

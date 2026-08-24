@@ -339,3 +339,203 @@
 [data-bs-theme="dark"] .chat-messages::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.24);
 }
+
+/* ============================================================
+   FINDINGS TABLES (auditable validation findings)
+   Rendered by src/features/invoice-validation/retail/rendering/findingsTable.ts.
+   Tables inherit the base .message-content table styles above;
+   classes below add section framing, severity chips, and the
+   diff/rollup emphasis.
+   ============================================================ */
+
+/* Base card: flat, borderless, strongly rounded surface modeled on
+   modern code-block cards — header (icon + title left, meta right)
+   blends seamlessly into the body: same background, no divider.
+   Severity is conveyed by the icon + chip, not by accent stripes. */
+.hd-card {
+  margin: 14px 0;
+  border-radius: 18px;
+  border: none;
+  background: #f4f4f5;
+  overflow: hidden;
+}
+
+.hd-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px 4px 18px;
+  font-size: 14px;
+  background: transparent;
+  border-bottom: none;
+}
+
+.hd-card-header-meta {
+  margin-left: auto;
+  color: #6b7280;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.hd-card-body {
+  padding: 10px 18px 16px 18px;
+}
+
+/* .hd-findings-error / .hd-findings-warning stay in the markup for
+   grouping/tests and future theming; visually the severity is carried
+   by the chip and icon (flat card design, no accent borders). */
+
+/* Code sample card: monospace body, no inner frame (card provides it). */
+.hd-code-card .hd-card-body {
+  padding: 4px 18px 16px 18px;
+}
+
+.hd-code-pre {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  overflow: auto;
+  white-space: pre;
+  font-size: 12px;
+}
+
+.hd-code-lang {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.hd-findings-title {
+  margin: 0;
+  font-size: 14px;
+}
+
+.hd-findings-count {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.hd-findings-explanation {
+  margin: 0 0 6px 0;
+  color: #374151;
+  font-size: 13px;
+}
+
+.hd-findings-formula {
+  margin: 0 0 8px 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.hd-findings-fix {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  color: #374151;
+}
+
+.hd-chip {
+  display: inline-block;
+  padding: 1px 8px;
+  margin-right: 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  vertical-align: middle;
+}
+
+.hd-chip-error {
+  background: #f8d7da;
+  color: #842029;
+}
+
+.hd-chip-warning {
+  background: #fff3cd;
+  color: #664d03;
+}
+
+.hd-findings-table {
+  font-size: 13px;
+}
+
+.hd-item-source {
+  color: #6b7280;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.hd-diff-cell {
+  font-weight: 700;
+  color: #dc3545;
+  white-space: nowrap;
+}
+
+.hd-rollup-row td {
+  font-style: italic;
+  color: #6b7280;
+  background: #f3f4f6;
+}
+
+/* ── Dark mode ── */
+
+[data-bs-theme="dark"] .hd-card {
+  background: #1e1e1e;
+  border: none;
+}
+
+[data-bs-theme="dark"] .hd-card-header {
+  background: transparent;
+  border-bottom: none;
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .hd-card-header-meta,
+[data-bs-theme="dark"] .hd-code-lang {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .hd-code-pre {
+  background: transparent;
+  color: #e8e6e3;
+}
+
+/* Tables inside dark cards sit on the card surface, not the bubble surface. */
+[data-bs-theme="dark"] .hd-card .hd-findings-table {
+  background: #1e1e1e;
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .hd-card .hd-findings-table thead th {
+  background: #282828;
+}
+
+[data-bs-theme="dark"] .hd-findings-explanation,
+[data-bs-theme="dark"] .hd-findings-fix {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .hd-findings-count,
+[data-bs-theme="dark"] .hd-findings-formula,
+[data-bs-theme="dark"] .hd-item-source {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .hd-chip-error {
+  background: rgba(220, 53, 69, 0.25);
+  color: #f1aeb5;
+}
+
+[data-bs-theme="dark"] .hd-chip-warning {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffe69c;
+}
+
+[data-bs-theme="dark"] .hd-diff-cell {
+  color: #f1aeb5;
+}
+
+[data-bs-theme="dark"] .hd-rollup-row td {
+  background: rgba(255, 255, 255, 0.03);
+  color: #9ca3af;
+}
