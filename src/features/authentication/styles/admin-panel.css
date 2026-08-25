@@ -477,3 +477,307 @@
   border-top-color: rgba(255, 255, 255, 0.10);
   background: #262019;
 }
+
+/* ============================================================
+   USER-GROUPED VIEW (granular-feature-entitlements)
+   UserCard toggles · RequestHistory · ApprovalDialog
+   ============================================================ */
+
+/* ── UserCard toggle rows (primary surface) ── */
+.ap-user-toggles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px 24px;
+  padding: 4px 0;
+}
+
+.ap-user-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.ap-user-toggle-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* ── Expandable history ── */
+.ap-history-toggle {
+  display: block;
+  width: 100%;
+  padding: 10px 18px;
+  border: none;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfc;
+  color: #4338ca;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ap-history-toggle:hover {
+  background: #f1f5f9;
+}
+
+.ap-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 18px 16px;
+  border-top: 1px solid #f1f5f9;
+  background: #fcfcfd;
+}
+
+.ap-history-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.ap-history-item--pending  { border-left: 3px solid #f59e0b; }
+.ap-history-item--approved { border-left: 3px solid #10b981; }
+.ap-history-item--rejected { border-left: 3px solid #ef4444; }
+
+.ap-history-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ap-history-date {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.ap-history-body {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ap-history-feature {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 14px;
+}
+
+.ap-history-feature-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.ap-history-feature-label--off {
+  color: #94a3b8;
+}
+
+.ap-history-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfc;
+}
+
+.ap-history-actions:empty {
+  display: none;
+}
+
+/* ── Approval dialog ── */
+.ap-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.ap-dialog {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.ap-dialog-title {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.ap-dialog-subtitle {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.ap-dialog-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ap-dialog-feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+}
+
+.ap-dialog-feature:has(input:checked) {
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+
+.ap-dialog-warning {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: #92400e;
+  background: #fef3c7;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.ap-dialog-error {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.ap-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.ap-btn--secondary {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.ap-btn--secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+/* ── Dark mode for the user-grouped view ── */
+[data-bs-theme="dark"] .ap-user-toggle-row {
+  background: #262019;
+}
+
+[data-bs-theme="dark"] .ap-user-toggle-label {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ap-history-toggle {
+  background: #262019;
+  border-top-color: rgba(255, 255, 255, 0.10);
+  color: #a5b4fc;
+}
+
+[data-bs-theme="dark"] .ap-history-toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .ap-history {
+  background: #1e1a18;
+  border-top-color: rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .ap-history-item {
+  background: #1e1a18;
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .ap-history-head {
+  background: #262019;
+  border-bottom-color: rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .ap-history-date {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .ap-history-feature-label {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ap-history-feature-label--off {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .ap-history-actions {
+  background: #262019;
+  border-top-color: rgba(255, 255, 255, 0.10);
+}
+
+[data-bs-theme="dark"] .ap-dialog {
+  background: #1e1a18;
+}
+
+[data-bs-theme="dark"] .ap-dialog-title {
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ap-dialog-subtitle {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .ap-dialog-feature {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ap-dialog-feature:has(input:checked) {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+[data-bs-theme="dark"] .ap-dialog-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+}
+
+[data-bs-theme="dark"] .ap-dialog-error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-bs-theme="dark"] .ap-btn--secondary {
+  background: #262019;
+  color: #e8e6e3;
+}
+
+[data-bs-theme="dark"] .ap-btn--secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}

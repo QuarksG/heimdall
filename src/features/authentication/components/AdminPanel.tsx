@@ -1,69 +1,135 @@
 // src/features/authentication/components/AdminPanel.tsx
+//
+// User-grouped Access Request Management (granular-feature-entitlements).
+//
+// Requests are grouped into one UserCard per user (Req 8.1) via the pure
+// groupRequestsByUser. The UserCard's per-feature toggles are the primary
+// surface for adjusting access; the expandable RequestHistory is the
+// secondary, per-request surface (Req 3.11). Status filter tabs show the
+// UserCards of users with >=1 matching request, and counts count USERS,
+// not requests (Req 8.9, 8.10).
+//
+// Every toggle change flows: pure planner (planRequestToggle /
+// planUserToggleOff / planUserToggleOn) -> executeRequestPatches (sequential
+// persistence raced against a 10s timeout, always followed by
+// syncEntitlement) -> re-fetch to reconcile UI state from persisted data
+// (Req 3.2–3.6, 8.4–8.6). While persisting, only the affected toggle is
+// disabled with a pending spinner; a second change to the same feature is
+// ignored until the first settles (Req 3.5, 3.12).
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { generateClient } from "aws-amplify/data";
 import { useAuth } from "../context/AuthContext";
 import type { Schema } from "../../../../amplify/data/resource";
+import {
+  groupRequestsByUser,
+  planRequestToggle,
+  planUserToggleOff,
+  planUserToggleOn,
+  type RequestSnapshot,
+  type UserGroup,
+} from "../services/entitlementCore";
+import {
+  approveRequestWithFeatures,
+  executeRequestPatches,
+  rejectPendingRequest,
+  revokeApprovedRequest,
+  type AdminActionsClient,
+} from "../services/adminActions";
+import ApprovalDialog from "./ApprovalDialog";
+import UserCard from "./UserCard";
 import "../styles/admin-panel.css";
 
-const client = generateClient<Schema>();
-
-/* ─── Types ─── */
-type AccessRequestItem = {
-  id: string;
-  userId: string;
-  email: string;
-  fullName: string;
-  country: string;
-  requestedFeatures: string[];
-  justification?: string | null;
-  status: "PENDING" | "APPROVED" | "REJECTED";
-  reviewedBy?: string | null;
-  reviewedAt?: string | null;
-  createdAt?: string | null;
+const client = generateClient<Schema>() as unknown as AdminActionsClient & {
+  models: {
+    AccessRequest: {
+      list(args?: { nextToken?: string | null }): Promise<{
+        data: Array<{
+          id: string;
+          userId: string;
+          email: string;
+          fullName: string;
+          country: string;
+          requestedFeatures: (string | null)[];
+          grantedFeatures?: (string | null)[] | null;
+          justification?: string | null;
+          status?: "PENDING" | "APPROVED" | "REJECTED" | null;
+          reviewedBy?: string | null;
+          reviewedAt?: string | null;
+          createdAt?: string | null;
+        }>;
+        nextToken?: string | null;
+      }>;
+    };
+  };
 };
 
 type TabFilter = "ALL" | "PENDING" | "APPROVED" | "REJECTED";
 
+const TABS: TabFilter[] = ["PENDING", "APPROVED", "REJECTED", "ALL"];
+
 export default function AdminPanel() {
   const { user } = useAuth();
-  const [requests, setRequests] = useState<AccessRequestItem[]>([]);
+  const [requests, setRequests] = useState<RequestSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tab, setTab] = useState<TabFilter>("PENDING");
 
-  /* ── Fetch all access requests ── */
-  const fetchRequests = useCallback(async () => {
-    setLoading(true);
-    setErr(null);
+  /** Toggle keys currently persisting: `user:${userId}:${feature}` and
+   *  `req:${requestId}:${feature}` (Req 3.5). */
+  const [pendingKeys, setPendingKeys] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  /** Request ids with a busy reject/revoke button. */
+  const [busyRequestIds, setBusyRequestIds] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  /** Per-feature approval dialog target (PENDING approve / REJECTED
+   *  re-approve, Req 1.1, 7.3). */
+  const [dialogTarget, setDialogTarget] = useState<RequestSnapshot | null>(
+    null,
+  );
+
+  /* ── Fetch all access requests (paginated) and map to snapshots ── */
+  const fetchRequests = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
-      const { data: items } = await client.models.AccessRequest.list();
-      // Sort newest first
-      const sorted = (items ?? [])
-        .map((item) => ({
-          id: item.id,
-          userId: item.userId,
-          email: item.email,
-          fullName: item.fullName,
-          country: item.country,
-          requestedFeatures: item.requestedFeatures as string[],
-          justification: item.justification,
-          status: (item.status ?? "PENDING") as AccessRequestItem["status"],
-          reviewedBy: item.reviewedBy,
-          reviewedAt: item.reviewedAt,
-          createdAt: item.createdAt,
-        }))
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt ?? 0).getTime() -
-            new Date(a.createdAt ?? 0).getTime(),
-        );
-      setRequests(sorted);
+      const all: RequestSnapshot[] = [];
+      let nextToken: string | null | undefined = undefined;
+      do {
+        const page = await client.models.AccessRequest.list({
+          nextToken: nextToken ?? undefined,
+        });
+        for (const item of page.data) {
+          all.push({
+            id: item.id,
+            userId: item.userId,
+            email: item.email,
+            fullName: item.fullName,
+            country: item.country,
+            requestedFeatures: (item.requestedFeatures ?? []).filter(
+              (f): f is string => f != null,
+            ),
+            grantedFeatures:
+              item.grantedFeatures == null
+                ? null
+                : item.grantedFeatures.filter((f): f is string => f != null),
+            justification: item.justification,
+            status: item.status ?? "PENDING",
+            reviewedBy: item.reviewedBy,
+            reviewedAt: item.reviewedAt,
+            createdAt: item.createdAt,
+          });
+        }
+        nextToken = page.nextToken ?? null;
+      } while (nextToken);
+      setRequests(all);
+      setErr(null);
     } catch (e) {
       console.error("[AdminPanel] fetch error:", e);
       setErr("Failed to load access requests.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -71,304 +137,256 @@ export default function AdminPanel() {
     void fetchRequests();
   }, [fetchRequests]);
 
-  /* ── Approve: update AccessRequest + create Entitlement ── */
-  const handleApprove = async (req: AccessRequestItem) => {
-    if (!user) return;
-    setActionBusy(req.id);
-    setErr(null);
-
-    const now = new Date().toISOString();
-
-    try {
-      // 1. Update AccessRequest status
-      await client.models.AccessRequest.update({
-        id: req.id,
-        status: "APPROVED",
-        reviewedBy: user.email,
-        reviewedAt: now,
-      });
-
-      // 2. Create Entitlement record
-      // userId must be the Cognito sub for the pre-token-generation Lambda.
-      // Since we store email as userId in AccessRequest, and the Entitlement
-      // table PK is userId, we use the same value here. If you switch to
-      // Cognito sub later, update both AccessRequest.userId and this field.
-      await client.models.Entitlement.create({
-        userId: req.userId,
-        country: req.country,
-        allowedFeatures: req.requestedFeatures,
-        grantedBy: user.email,
-        grantedAt: now,
-      });
-
-      // Refresh the list
-      setRequests((prev) =>
-        prev.map((r) =>
-          r.id === req.id
-            ? { ...r, status: "APPROVED", reviewedBy: user.email, reviewedAt: now }
-            : r,
-        ),
-      );
-    } catch (e) {
-      console.error("[AdminPanel] approve error:", e);
-      setErr(`Failed to approve request for ${req.email}.`);
-    } finally {
-      setActionBusy(null);
-    }
-  };
-
-  /* ── Reject: update AccessRequest status only ── */
-  const handleReject = async (req: AccessRequestItem) => {
-    if (!user) return;
-    setActionBusy(req.id);
-    setErr(null);
-
-    const now = new Date().toISOString();
-
-    try {
-      await client.models.AccessRequest.update({
-        id: req.id,
-        status: "REJECTED",
-        reviewedBy: user.email,
-        reviewedAt: now,
-      });
-
-      setRequests((prev) =>
-        prev.map((r) =>
-          r.id === req.id
-            ? { ...r, status: "REJECTED", reviewedBy: user.email, reviewedAt: now }
-            : r,
-        ),
-      );
-    } catch (e) {
-      console.error("[AdminPanel] reject error:", e);
-      setErr(`Failed to reject request for ${req.email}.`);
-    } finally {
-      setActionBusy(null);
-    }
-  };
-
-  /* ── Revoke: delete Entitlement + set request back to REJECTED ── */
-  const handleRevoke = async (req: AccessRequestItem) => {
-    if (!user) return;
-    setActionBusy(req.id);
-    setErr(null);
-
-    const now = new Date().toISOString();
-
-    try {
-      // Delete entitlement
-      await client.models.Entitlement.delete({ userId: req.userId });
-
-      // Update request status
-      await client.models.AccessRequest.update({
-        id: req.id,
-        status: "REJECTED",
-        reviewedBy: user.email,
-        reviewedAt: now,
-      });
-
-      setRequests((prev) =>
-        prev.map((r) =>
-          r.id === req.id
-            ? { ...r, status: "REJECTED", reviewedBy: user.email, reviewedAt: now }
-            : r,
-        ),
-      );
-    } catch (e) {
-      console.error("[AdminPanel] revoke error:", e);
-      setErr(`Failed to revoke access for ${req.email}.`);
-    } finally {
-      setActionBusy(null);
-    }
-  };
-
-  /* ── Filtered list ── */
-  const filtered = useMemo(() => {
-    if (tab === "ALL") return requests;
-    return requests.filter((r) => r.status === tab);
-  }, [requests, tab]);
+  /* ── Grouping and status filter (Req 8.1, 8.9, 8.10) ── */
+  const groups = useMemo(() => groupRequestsByUser(requests), [requests]);
 
   const counts = useMemo(() => {
-    const c = { ALL: requests.length, PENDING: 0, APPROVED: 0, REJECTED: 0 };
-    for (const r of requests) {
-      c[r.status] = (c[r.status] ?? 0) + 1;
+    const byStatus = (status: RequestSnapshot["status"]) =>
+      groups.filter((g) => g.requests.some((r) => r.status === status)).length;
+    return {
+      ALL: groups.length,
+      PENDING: byStatus("PENDING"),
+      APPROVED: byStatus("APPROVED"),
+      REJECTED: byStatus("REJECTED"),
+    };
+  }, [groups]);
+
+  const filteredGroups = useMemo(() => {
+    if (tab === "ALL") return groups;
+    return groups.filter((g) => g.requests.some((r) => r.status === tab));
+  }, [groups, tab]);
+
+  /* ── Pending-key helpers ── */
+  const addKey = (
+    setter: React.Dispatch<React.SetStateAction<ReadonlySet<string>>>,
+    key: string,
+  ) => setter((prev) => new Set(prev).add(key));
+  const removeKey = (
+    setter: React.Dispatch<React.SetStateAction<ReadonlySet<string>>>,
+    key: string,
+  ) =>
+    setter((prev) => {
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+
+  /* ── Toggle handlers (task 9.7) ── */
+
+  /** Shared tail: run the executor, surface errors naming user and feature
+   *  (Req 3.6, 8.6), then re-fetch so the UI reconciles to the
+   *  persisted-derived state whether the change succeeded or not. */
+  const runPatches = async (
+    group: { userId: string; email: string },
+    feature: string,
+    patches: ReturnType<typeof planRequestToggle>[],
+  ) => {
+    if (!user) return;
+    const report = await executeRequestPatches(
+      client,
+      { userId: group.userId, userLabel: group.email, feature },
+      patches,
+      { email: user.email },
+    );
+    if (!report.ok) setErr(report.error ?? "Toggle change failed.");
+    else setErr(null);
+    // Reconcile from persisted data — this reverts the toggle on failure
+    // and confirms it on success (Req 3.6, 8.6).
+    await fetchRequests(true);
+  };
+
+  /** UserCard toggle (Req 8.4, 8.5): fan-out on OFF, fan-in on ON. */
+  const handleUserToggle = async (
+    group: UserGroup,
+    feature: string,
+    next: boolean,
+  ) => {
+    const key = `user:${group.userId}:${feature}`;
+    if (pendingKeys.has(key)) return; // ignore until the first settles
+    const patches = next
+      ? (() => {
+          const patch = planUserToggleOn(group, feature);
+          return patch ? [patch] : [];
+        })()
+      : planUserToggleOff(group, feature);
+    if (patches.length === 0) return;
+
+    addKey(setPendingKeys, key);
+    try {
+      await runPatches(group, feature, patches);
+    } finally {
+      removeKey(setPendingKeys, key);
     }
-    return c;
-  }, [requests]);
+  };
+
+  /** RequestHistory toggle (Req 3.2–3.4, 3.10): single-request patch. */
+  const handleRequestToggle = async (
+    req: RequestSnapshot,
+    feature: string,
+    next: boolean,
+  ) => {
+    const key = `req:${req.id}:${feature}`;
+    if (pendingKeys.has(key)) return;
+    const patch = planRequestToggle(req, feature, next);
+
+    addKey(setPendingKeys, key);
+    try {
+      await runPatches({ userId: req.userId, email: req.email }, feature, [
+        patch,
+      ]);
+    } finally {
+      removeKey(setPendingKeys, key);
+    }
+  };
+
+  /* ── Review actions ── */
+
+  const handleReject = async (req: RequestSnapshot) => {
+    if (!user) return;
+    addKey(setBusyRequestIds, req.id);
+    const outcome = await rejectPendingRequest(
+      client,
+      { id: req.id, userId: req.userId },
+      { email: user.email },
+    );
+    if (!outcome.ok) {
+      setErr(
+        outcome.kind === "stale-status"
+          ? `The request from ${req.email} has already been reviewed or changed.`
+          : `Failed to reject the request from ${req.email}: ${outcome.error}`,
+      );
+    } else {
+      setErr(null);
+    }
+    await fetchRequests(true);
+    removeKey(setBusyRequestIds, req.id);
+  };
+
+  const handleRevoke = async (req: RequestSnapshot) => {
+    if (!user) return;
+    addKey(setBusyRequestIds, req.id);
+    const outcome = await revokeApprovedRequest(
+      client,
+      { id: req.id, userId: req.userId },
+      { email: user.email },
+    );
+    if (!outcome.ok) {
+      setErr(
+        outcome.kind === "sync"
+          ? `Entitlement sync failed while revoking access for ${req.email}; the request was restored.`
+          : outcome.kind === "stale-status"
+            ? `The request from ${req.email} has already been reviewed or changed.`
+            : `Failed to revoke access for ${req.email}: ${outcome.error}`,
+      );
+    } else {
+      setErr(null);
+    }
+    await fetchRequests(true);
+    removeKey(setBusyRequestIds, req.id);
+  };
+
+  /** ApprovalDialog confirm — task 6.1 per-feature approval path, used for
+   *  PENDING approvals and REJECTED re-approvals alike (Req 7.3). */
+  const handleApprovalConfirm = async (selection: string[]) => {
+    if (!user || !dialogTarget) {
+      return {
+        ok: false as const,
+        kind: "persistence" as const,
+        error: "No signed-in admin.",
+      };
+    }
+    const outcome = await approveRequestWithFeatures(
+      client,
+      {
+        id: dialogTarget.id,
+        userId: dialogTarget.userId,
+        requestedFeatures: dialogTarget.requestedFeatures,
+        displayedStatus: dialogTarget.status,
+      },
+      selection,
+      { email: user.email },
+    );
+    if (outcome.ok) await fetchRequests(true);
+    return outcome;
+  };
 
   return (
     <div className="ap-container">
       <div className="ap-header">
         <h2>Access Request Management</h2>
         <p className="ap-subtitle">
-          Review, approve, or reject user access requests.
+          Manage each user's feature access with per-feature toggles; expand a
+          card for the full request history.
         </p>
       </div>
 
-      {/* ── Tab filters ── */}
+      {/* ── Status filter tabs — counts count users (Req 8.9, 8.10) ── */}
       <div className="ap-tabs">
-        {(["PENDING", "APPROVED", "REJECTED", "ALL"] as TabFilter[]).map(
-          (t) => (
-            <button
-              key={t}
-              type="button"
-              className={`ap-tab ${tab === t ? "ap-tab--active" : ""}`}
-              onClick={() => setTab(t)}
-            >
-              {t}
-              <span className="ap-tab-count">{counts[t]}</span>
-            </button>
-          ),
-        )}
+        {TABS.map((t) => (
+          <button
+            key={t}
+            type="button"
+            className={`ap-tab ${tab === t ? "ap-tab--active" : ""}`}
+            onClick={() => setTab(t)}
+          >
+            {t}
+            <span className="ap-tab-count">{counts[t]}</span>
+          </button>
+        ))}
 
         <button
           type="button"
           className="ap-refresh-btn"
-          onClick={fetchRequests}
+          onClick={() => fetchRequests()}
           title="Refresh"
         >
           <i className="ph-bold ph-arrows-clockwise" />
         </button>
       </div>
 
-      {/* ── Error ── */}
       {err && (
         <div className="ap-alert ap-alert--error" role="alert">
           {err}
         </div>
       )}
 
-      {/* ── Loading ── */}
       {loading && (
         <div className="ap-loading">
           <span className="ap-spinner" /> Loading requests&hellip;
         </div>
       )}
 
-      {/* ── Empty state ── */}
-      {!loading && filtered.length === 0 && (
+      {!loading && filteredGroups.length === 0 && (
         <div className="ap-empty">
-          No {tab === "ALL" ? "" : tab.toLowerCase()} requests found.
+          No users with {tab === "ALL" ? "" : `${tab.toLowerCase()} `}requests
+          found.
         </div>
       )}
 
-      {/* ── Request cards ── */}
+      {/* ── One UserCard per user (Req 8.1) ── */}
       <div className="ap-list">
-        {filtered.map((req) => (
-          <div key={req.id} className={`ap-card ap-card--${req.status.toLowerCase()}`}>
-            <div className="ap-card-header">
-              <div>
-                <span className="ap-card-name">{req.fullName}</span>
-                <span className="ap-card-email">{req.email}</span>
-              </div>
-              <span className={`ap-badge ap-badge--${req.status.toLowerCase()}`}>
-                {req.status}
-              </span>
-            </div>
-
-            <div className="ap-card-body">
-              <div className="ap-card-field">
-                <span className="ap-card-label">Countries:</span>
-                <span className="ap-card-value">
-                  {req.country.split(",").map((c) => (
-                    <span key={c} className="ap-country-tag">
-                      {c.trim()}
-                    </span>
-                  ))}
-                </span>
-              </div>
-
-              <div className="ap-card-field">
-                <span className="ap-card-label">Features:</span>
-                <span className="ap-card-value">
-                  {req.requestedFeatures.map((f) => (
-                    <span key={f} className="ap-feature-tag">
-                      {f}
-                    </span>
-                  ))}
-                </span>
-              </div>
-
-              {req.justification && (
-                <div className="ap-card-field">
-                  <span className="ap-card-label">Justification:</span>
-                  <span className="ap-card-value ap-card-justification">
-                    {req.justification}
-                  </span>
-                </div>
-              )}
-
-              {req.reviewedBy && (
-                <div className="ap-card-field">
-                  <span className="ap-card-label">Reviewed by:</span>
-                  <span className="ap-card-value">
-                    {req.reviewedBy} &mdash;{" "}
-                    {req.reviewedAt
-                      ? new Date(req.reviewedAt).toLocaleDateString()
-                      : ""}
-                  </span>
-                </div>
-              )}
-
-              <div className="ap-card-field">
-                <span className="ap-card-label">Submitted:</span>
-                <span className="ap-card-value">
-                  {req.createdAt
-                    ? new Date(req.createdAt).toLocaleString()
-                    : "—"}
-                </span>
-              </div>
-            </div>
-
-            {/* ── Actions ── */}
-            <div className="ap-card-actions">
-              {req.status === "PENDING" && (
-                <>
-                  <button
-                    type="button"
-                    className="ap-btn ap-btn--approve"
-                    disabled={actionBusy === req.id}
-                    onClick={() => handleApprove(req)}
-                  >
-                    {actionBusy === req.id ? "Processing…" : "Approve"}
-                  </button>
-                  <button
-                    type="button"
-                    className="ap-btn ap-btn--reject"
-                    disabled={actionBusy === req.id}
-                    onClick={() => handleReject(req)}
-                  >
-                    Reject
-                  </button>
-                </>
-              )}
-
-              {req.status === "APPROVED" && (
-                <button
-                  type="button"
-                  className="ap-btn ap-btn--revoke"
-                  disabled={actionBusy === req.id}
-                  onClick={() => handleRevoke(req)}
-                >
-                  {actionBusy === req.id ? "Revoking…" : "Revoke Access"}
-                </button>
-              )}
-
-              {req.status === "REJECTED" && (
-                <button
-                  type="button"
-                  className="ap-btn ap-btn--approve"
-                  disabled={actionBusy === req.id}
-                  onClick={() => handleApprove(req)}
-                >
-                  {actionBusy === req.id ? "Processing…" : "Re-approve"}
-                </button>
-              )}
-            </div>
-          </div>
+        {filteredGroups.map((group) => (
+          <UserCard
+            key={group.userId}
+            group={group}
+            pendingKeys={pendingKeys}
+            busyRequestIds={busyRequestIds}
+            onUserToggle={handleUserToggle}
+            onRequestToggle={handleRequestToggle}
+            onOpenApproval={setDialogTarget}
+            onReject={handleReject}
+            onRevoke={handleRevoke}
+          />
         ))}
       </div>
+
+      {dialogTarget && (
+        <ApprovalDialog
+          request={dialogTarget}
+          onConfirm={handleApprovalConfirm}
+          onClose={() => setDialogTarget(null)}
+        />
+      )}
     </div>
   );
 }

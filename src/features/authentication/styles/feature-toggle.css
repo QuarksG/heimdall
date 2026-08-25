@@ -1,0 +1,100 @@
+/* src/features/authentication/styles/feature-toggle.css */
+
+/* ── macOS System Settings-style switch (Req 3.7) ── */
+
+.ft-switch {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 15.5px;
+}
+
+.ft-switch:focus-visible {
+  outline: 2px solid #4338ca;
+  outline-offset: 2px;
+}
+
+.ft-switch:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Track: 51x31px, green when on, gray when off */
+.ft-track {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
+  border-radius: 15.5px;
+  background: #e9e9eb;
+  transition: background 150ms ease;
+}
+
+.ft-switch--on .ft-track {
+  background: #34c759;
+}
+
+/* Thumb: white circle sliding left/right, 150ms ease */
+.ft-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.24),
+    0 3px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 150ms ease;
+}
+
+.ft-switch--on .ft-thumb {
+  transform: translateX(20px);
+}
+
+/* Spinner replaces the thumb while a change is persisting (Req 3.5) */
+.ft-spinner {
+  position: absolute;
+  top: 6.5px;
+  left: 6.5px;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  border-top-color: #8e8e93;
+  border-radius: 50%;
+  background: #ffffff;
+  animation: ft-spin 0.6s linear infinite;
+}
+
+.ft-switch--on .ft-spinner {
+  border-top-color: #34c759;
+  animation-name: ft-spin-on;
+}
+
+@keyframes ft-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ft-spin-on {
+  from {
+    transform: translateX(20px) rotate(0deg);
+  }
+  to {
+    transform: translateX(20px) rotate(360deg);
+  }
+}
+
+/* ── Dark theme (matches the [data-bs-theme] pattern in admin-panel.css) ── */
+[data-bs-theme="dark"] .ft-track {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+[data-bs-theme="dark"] .ft-switch--on .ft-track {
+  background: #30d158;
+}

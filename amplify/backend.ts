@@ -1,6 +1,5 @@
 import { defineBackend } from "@aws-amplify/backend";
 import { Stack } from "aws-cdk-lib";
-import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
 import { HttpApi, CorsHttpMethod, HttpMethod } from "aws-cdk-lib/aws-apigatewayv2";
 import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
 
@@ -28,20 +27,17 @@ backend.termsApi.addEnvironment("CURRENT_TERMS_VERSION", "TOS_2026_02");
 backend.termsApi.addEnvironment("ALLOWED_ORIGIN", "https://main.d3p8snpek9jhao.amplifyapp.com");
 
 
+// PreTokenGen Lambda (granular-feature-entitlements, Req 12.2): explicit
+// table-name configuration + table-scoped read grant, mirroring the
+// TERMS_TABLE_NAME wiring above. The former hand-rolled wildcard policy
+// (dynamodb:* on resources: ["*"], including ListTables) is removed.
+const entitlementTable = backend.data.resources.tables["Entitlement"];
 const preTokenLambda = backend.preTokenGeneration.resources.lambda;
 
-preTokenLambda.addToRolePolicy(
-  new PolicyStatement({
-    effect: Effect.ALLOW,
-    actions: [
-      "dynamodb:GetItem",
-      "dynamodb:Query",
-      "dynamodb:Scan",
-      "dynamodb:ListTables",
-      "dynamodb:DescribeTable",
-    ],
-    resources: ["*"],
-  }),
+entitlementTable.grantReadData(preTokenLambda);
+backend.preTokenGeneration.addEnvironment(
+  "ENTITLEMENT_TABLE_NAME",
+  entitlementTable.tableName,
 );
 
 

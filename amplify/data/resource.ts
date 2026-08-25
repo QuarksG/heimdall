@@ -32,6 +32,9 @@ const schema = a.schema({
       fullName: a.string().required(),
       country: a.string().required(),
       requestedFeatures: a.string().required().array().required(),
+      // Subset of requestedFeatures actually granted by an Admin.
+      // Absent (null) on legacy records — interpreted by effectiveGrantedFeatures().
+      grantedFeatures: a.string().array(),
       justification: a.string(),
       status: a.enum(["PENDING", "APPROVED", "REJECTED"]),
       reviewedBy: a.string(),
@@ -53,7 +56,12 @@ const schema = a.schema({
       grantedAt: a.string().required(),
     })
     .identifier(["userId"])
-    .authorization((allow) => [allow.group("Admin")]),
+    .authorization((allow) => [
+      allow.group("Admin"),
+      // A signed-in user may READ (get + subscribe to) the record
+      // whose userId equals their own Cognito sub. No mutations.
+      allow.ownerDefinedIn("userId").identityClaim("sub").to(["read"]),
+    ]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

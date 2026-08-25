@@ -373,3 +373,90 @@
 [data-bs-theme="dark"] .ar-footer {
   color: #9ca3af;
 }
+
+/* ============================================================
+   DUPLICATE PREVENTION (granular-feature-entitlements, Req 9)
+   ============================================================ */
+
+/* Duplicate features: disabled picker cards with a status badge */
+.ar-feature-card--disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  flex-wrap: wrap;
+}
+
+.ar-feature-card--disabled:hover {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+
+.ar-feature-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.ar-feature-badge--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.ar-feature-badge--approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.ar-feature-badge--rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Warning alert (all-duplicate submissions) */
+.ar-alert--warning {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+/* Excluded-feature list inside alerts */
+.ar-excluded-list {
+  margin: 8px 0 4px;
+  padding-left: 18px;
+}
+
+.ar-excluded-list li {
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+/* ── Dark mode ── */
+[data-bs-theme="dark"] .ar-feature-card--disabled:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #262019;
+}
+
+[data-bs-theme="dark"] .ar-feature-badge--pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+}
+
+[data-bs-theme="dark"] .ar-feature-badge--approved {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+}
+
+[data-bs-theme="dark"] .ar-feature-badge--rejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+[data-bs-theme="dark"] .ar-alert--warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.4);
+}
