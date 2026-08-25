@@ -145,9 +145,21 @@ const recordArb = fc
   })
   .map(fields => makeRecord(fields));
 
-/** Record sets of 1..12 records (>= 1 per the property statement). */
+/**
+ * Record sets of 1..12 records (>= 1 per the property statement).
+ *
+ * PRECONDITION: at least one row carries a non-zero amount — the cashier
+ * model's input validation intentionally rejects all-zero-amount files
+ * (ALL_ZERO_AMOUNTS: every row has credit, debit and discount all exactly
+ * zero) before any sheet is built, so such inputs are outside this
+ * property's domain. Mirrors the same precondition in the ordering
+ * property test.
+ */
 const recordsArb = fc
   .array(recordArb, { minLength: 1, maxLength: 12 })
+  .filter(records =>
+    records.some(r => r.credit !== 0 || r.debit !== 0 || r.discount !== 0),
+  )
   .map(records =>
     records.map((record, index) => ({ ...record, rowNumber: index + 1 })),
   );
