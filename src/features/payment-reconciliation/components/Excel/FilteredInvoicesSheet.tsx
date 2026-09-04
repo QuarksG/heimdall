@@ -41,6 +41,47 @@ export class FilteredInvoicesSheet {
   /** 0-based indices of the amount columns (number format #,##0.00). */
   private static readonly AMOUNT_COLUMNS = [7, 8, 9, 10];
 
+  /**
+   * Excel's hard per-cell text limit — `XLSX.write` throws
+   * "Text length must not exceed 32767 characters" past it, aborting the
+   * whole export. The two unbounded cells on this sheet (Zincir Belgeleri
+   * and Açıklama) are capped below this so one giant chain can never sink
+   * the workbook.
+   */
+  private static readonly CELL_CHAR_LIMIT = 32767;
+
+  /**
+   * Joins list items with `sep`, but stops adding items once the joined
+   * text would exceed the Excel cell limit and appends ", … +X more"
+   * (same convention as `FileIntegrityValidator.listSample`). The full
+   * row detail always remains on the Payment Data sheet.
+   */
+  private static joinWithinCellLimit(items: string[], sep: string): string {
+    const full = items.join(sep);
+    if (full.length <= FilteredInvoicesSheet.CELL_CHAR_LIMIT) return full;
+
+    // Reserve room for the worst-case suffix before accumulating.
+    const suffixBudget = `, … +${items.length} more`.length;
+    const budget = FilteredInvoicesSheet.CELL_CHAR_LIMIT - suffixBudget;
+
+    let length = 0;
+    let kept = 0;
+    for (const item of items) {
+      const next = length + (kept > 0 ? sep.length : 0) + item.length;
+      if (next > budget) break;
+      length = next;
+      kept++;
+    }
+
+    return `${items.slice(0, kept).join(sep)}, … +${items.length - kept} more`;
+  }
+
+  /** Hard-truncates free text at the Excel cell limit with an ellipsis. */
+  private static capText(text: string): string {
+    if (text.length <= FilteredInvoicesSheet.CELL_CHAR_LIMIT) return text;
+    return `${text.slice(0, FilteredInvoicesSheet.CELL_CHAR_LIMIT - 2)} …`;
+  }
+
   public create(records: PaymentRecord[]): XLSX.WorkSheet {
     // Cross-family sales adjudication: 'Reconciled on due date' requires
     // NO claim from PQV ∪ PPV, so PQV receives PPV's claimed roots.
@@ -75,9 +116,13 @@ export class FilteredInvoicesSheet {
         chain.elapsedDays ?? '',
         // Zincir Belgeleri: audit-trail override when the module provides
         // one (provision batches carry payment numbers), else the plain
-        // invoice-number list.
-        (chain.documentTrail ?? chain.rows.map(r => r.invoiceNumber)).join(' | '),
-        chain.narrative,
+        // invoice-number list. Capped at the Excel cell limit so a huge
+        // chain cannot abort the export.
+        FilteredInvoicesSheet.joinWithinCellLimit(
+          chain.documentTrail ?? chain.rows.map(r => r.invoiceNumber),
+          ' | ',
+        ),
+        FilteredInvoicesSheet.capText(chain.narrative),
       ]);
     });
 
