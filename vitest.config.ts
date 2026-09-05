@@ -9,7 +9,11 @@ export default mergeConfig(
     test: {
       environment: 'jsdom',
       globals: true,
-      include: ['src/**/*.{test,spec}.{ts,tsx}'],
+      include: [
+        'src/**/*.{test,spec}.{ts,tsx}',
+        // Build-verification property/unit tests (feature-code-splitting spec)
+        'scripts/__tests__/**/*.test.mjs',
+      ],
       // No tests exist yet; later tasks add them. Keeps `npm run test` green.
       passWithNoTests: true,
     },
